@@ -1,13 +1,12 @@
-// src/TeamManagement.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './styles.css';
 
 const TeamManagement = () => {
   const [teams, setTeams] = useState([]);
-  const [newTeam, setNewTeam] = useState({ team_name: '', group_name: '' });
+  const [newTeam, setNewTeam] = useState({ team_name: '', group_name: 'A' });
   const [editMode, setEditMode] = useState(false);
   const [currentTeamId, setCurrentTeamId] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchTeams();
@@ -24,25 +23,24 @@ const TeamManagement = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewTeam((prev) => ({ ...prev, [name]: value }));
+    setNewTeam(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editMode) {
-        // Update existing team
         await axios.put(`http://localhost:5000/teams/${currentTeamId}`, newTeam);
-        setEditMode(false);
-        setCurrentTeamId(null);
       } else {
-        // Add new team
         await axios.post('http://localhost:5000/teams', newTeam);
       }
-      setNewTeam({ team_name: '', group_name: '' }); // Reset form
-      fetchTeams(); // Refresh team list
+      setNewTeam({ team_name: '', group_name: 'A' });
+      setEditMode(false);
+      setCurrentTeamId(null);
+      fetchTeams();
     } catch (error) {
-      console.error('Error adding/updating team:', error);
+      console.error('Error saving team:', error);
+      setError('Failed to save team');
     }
   };
 
@@ -55,15 +53,18 @@ const TeamManagement = () => {
   const handleDelete = async (teamId) => {
     try {
       await axios.delete(`http://localhost:5000/teams/${teamId}`);
-      fetchTeams(); // Refresh team list
+      fetchTeams();
     } catch (error) {
       console.error('Error deleting team:', error);
+      setError('Failed to delete team');
     }
   };
 
   return (
     <div>
       <h2>Teams</h2>
+      {error && <div style={{color: 'red'}}>{error}</div>}
+
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -73,15 +74,18 @@ const TeamManagement = () => {
           onChange={handleChange}
           required
         />
-        <input
-          type="text"
+        <select
           name="group_name"
-          placeholder="Group Name"
           value={newTeam.group_name}
           onChange={handleChange}
           required
-        />
-        <button type="submit">{editMode ? 'Update Team' : 'Add Team'}</button>
+        >
+          <option value="A">Group A</option>
+          <option value="B">Group B</option>
+        </select>
+        <button type="submit">
+          {editMode ? 'Update Team' : 'Add Team'}
+        </button>
       </form>
 
       <ul>

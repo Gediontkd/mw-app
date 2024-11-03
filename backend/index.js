@@ -6,6 +6,7 @@ const playersRouter = require('./routes/players');
 const teamsRouter = require('./routes/teams');
 const matchesRouter = require('./routes/matches');
 const tournamentPhasesRouter = require('./routes/tournamentPhases');
+const tournamentRouter = require('./routes/tournament');
 
 const app = express();
 const port = 5000;
@@ -17,8 +18,8 @@ app.use(cors());
 // MySQL connection setup
 const db = mysql.createConnection({
   host: 'localhost',
-  user: 'root',
-  password: 'root',
+  user: 'admin',
+  password: 'admin',
   database: 'tournament_db',
   port: 3306
 });
@@ -32,17 +33,18 @@ db.connect((err) => {
   console.log('Connected to MySQL database as id', db.threadId);
 });
 
-// Log the imported routers to verify they are correct
-console.log('Players Router:', playersRouter);
-console.log('Teams Router:', teamsRouter);
-console.log('Matches Router:', matchesRouter);
-console.log('Tournament Phases Router:', tournamentPhasesRouter);
+// // Log the imported routers to verify they are correct
+// console.log('Players Router:', playersRouter);
+// console.log('Teams Router:', teamsRouter);
+// console.log('Matches Router:', matchesRouter);
+// console.log('Tournament Phases Router:', tournamentPhasesRouter);
 
 // Use routes for different entities
 app.use('/players', playersRouter);
 app.use('/teams', teamsRouter);
 app.use('/matches', matchesRouter);
 app.use('/phases', tournamentPhasesRouter);
+app.use('/tournament', tournamentRouter);
 
 // Start the server
 app.listen(port, () => {

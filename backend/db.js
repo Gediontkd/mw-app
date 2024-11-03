@@ -3,8 +3,8 @@ const mysql = require('mysql2');
 
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'root',
-    password: 'root',
+    user: 'admin',
+    password: 'admin',
     database: 'tournament_db',
     port: 3306
 });

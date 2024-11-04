@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import './rankings.css';
 
+const styles = {
+    adSpace: {
+      width: '100%',
+      height: '120px',
+      backgroundColor: '#f0f0f0',
+      marginBottom: '30px',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: '8px',
+      border: '2px dashed #ccc',
+    }
+  };
+
 const LiveRankings = () => {
   const [groupARankings, setGroupARankings] = useState([]);
   const [groupBRankings, setGroupBRankings] = useState([]);
@@ -121,6 +135,10 @@ const LiveRankings = () => {
 
   return (
     <div className="rankings-container">
+        {/* Ad Space */}
+      <div style={styles.adSpace}>
+        <span>Advertisement Space</span>
+      </div>
       <div className="rankings-header">
         <h1 className="rankings-title">Live Tournament Rankings</h1>
         <div className="rankings-actions">

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import AdminDashboard from './pages/admin/AdminDashboard';
 import TournamentDashboard from './pages/user/TournamentDashboard';
 import LiveRankings from './components/LiveRankings';
+import BracketGeneration from './components/BracketGeneration';
 
 // Import your existing components
 import TeamManagement from './components/TeamManagement';
@@ -42,6 +43,12 @@ const Navigation = () => {
               >
                 Live Rankings
               </Link>
+              <Link
+                to="/bracket-generation"
+                className={`nav-link ${location.pathname === '/bracket-generation' ? 'active' : ''}`}
+              >
+                Finals
+              </Link>
             </>
           )}
         </div>
@@ -69,6 +76,7 @@ function App() {
             {/* User Routes */}
             <Route path="/" element={<TournamentDashboard />} />
             <Route path="/rankings" element={<LiveRankings />} />
+            <Route path="/bracket-generation" element={<BracketGeneration />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />} />

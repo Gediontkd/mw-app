@@ -2,6 +2,20 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './tournament.css';
 
+const styles = {
+  adSpace: {
+    width: '100%',
+    height: '120px',
+    backgroundColor: '#f0f0f0',
+    marginBottom: '30px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: '8px',
+    border: '2px dashed #ccc',
+  }
+};
+
 const TournamentDashboard = () => {
   const [players, setPlayers] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -43,6 +57,10 @@ const TournamentDashboard = () => {
 
   return (
     <div className="tournament-container">
+      {/* Ad Space */}
+      <div style={styles.adSpace}>
+        <span>Advertisement Space</span>
+      </div>
       {/* Tournament Header */}
       <div className="tournament-header">
         <h1 className="tournament-title">{tournamentInfo.name}</h1>

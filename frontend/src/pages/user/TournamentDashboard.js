@@ -1,6 +1,29 @@
+// TournamentDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './tournament.css';
+
+// Import player images
+import player1 from '../../assets/players/bblade_card.png';
+import player2 from '../../assets/players/biaar_card.png';
+import player3 from '../../assets/players/breelloo_card.png';
+import player4 from '../../assets/players/cong_card.png';
+import player5 from '../../assets/players/diixblo_card.png';
+import player6 from '../../assets/players/eliaa_card.png';
+import player7 from '../../assets/players/elmarine_card.png';
+import player8 from '../../assets/players/fede_card.png';
+import player9 from '../../assets/players/freddy_card.png';
+import player10 from '../../assets/players/gxbz_card.png';
+import player11 from '../../assets/players/infernaal_card.png';
+import player12 from '../../assets/players/intercensal_card.png';
+import player13 from '../../assets/players/iszen_card.png';
+import player14 from '../../assets/players/jezuzjrr_card.png';
+import player15 from '../../assets/players/kibeyz_card.png';
+import player16 from '../../assets/players/pelle_card.png';
+import player17 from '../../assets/players/system_card.png';
+import player18 from '../../assets/players/tenaglia_card.png';
+import player19 from '../../assets/players/waartex_card.png';
+import player20 from '../../assets/players/zanx_card.png';
 
 const styles = {
   adSpace: {
@@ -20,8 +43,9 @@ const TournamentDashboard = () => {
   const [players, setPlayers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-  // Static tournament info
+  const [expandView, setExpandView] = useState(false);
+
+  // Tournament info remains static
   const tournamentInfo = {
     name: "Most Wanted Tournament",
     date: "2024-03-21",
@@ -30,10 +54,35 @@ const TournamentDashboard = () => {
     playersPerTeam: 2
   };
 
+  const getPlayerImage = (playerId) => {
+    const imageMap = {
+      89: player1,  // hhh
+      90: player2,  // kebede
+      91: player3,  // Gedion
+      92: player4,  // buki
+      93: player5,  // dani
+      94: player6,  // alem
+      95: player7,  // test
+      96: player8,  // alem
+      97: player9,  // tedi
+      98: player10, // geme
+      99: player11, // sosi
+      100: player12, // hana
+      101: player13, // jon
+      102: player14, // fff
+      103: player15, // adsa
+      104: player16, // dafasd
+      105: player17, // dsads
+      106: player18, // dada
+      107: player19, // dfgdsf
+      108: player20  // adsd
+    };
+    return imageMap[playerId] || player1;
+  };
+
   useEffect(() => {
     fetchData();
-    // Set up periodic refresh
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -61,6 +110,7 @@ const TournamentDashboard = () => {
       <div style={styles.adSpace}>
         <span>Advertisement Space</span>
       </div>
+
       {/* Tournament Header */}
       <div className="tournament-header">
         <h1 className="tournament-title">{tournamentInfo.name}</h1>
@@ -90,14 +140,40 @@ const TournamentDashboard = () => {
 
       {/* Enrolled Players Section */}
       <div className="section">
-        <h2 className="section-title">Enrolled Players</h2>
+        <div className="section-header">
+          <h2 className="section-title">Enrolled Players</h2>
+          <button 
+            className="expand-button"
+            onClick={() => setExpandView(!expandView)}
+          >
+            {expandView ? 'Show Images' : 'Click to expand'}
+          </button>
+        </div>
         <div className="player-grid">
-          {players.map(player => (
+          {players.map((player) => (
             <div key={player.id} className="player-card">
-              <div className="player-name">{player.name}</div>
-              <div className={`player-status ${player.team_id ? 'assigned' : 'unassigned'}`}>
-                {player.team_id ? 'In Team' : 'Not Assigned'}
-              </div>
+              {expandView ? (
+                <div className="player-info">
+                  <div className="player-name">{player.name}</div>
+                  <div className={`player-status ${player.team_id ? 'assigned' : 'unassigned'}`}>
+                    {player.team_id ? 'In Team' : 'Not Assigned'}
+                  </div>
+                </div>
+              ) : (
+                <div className="player-image-wrapper">
+                  <img 
+                    src={getPlayerImage(player.id)}
+                    alt={player.name}
+                    className="player-image"
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover',
+                      borderRadius: '8px'
+                    }}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -316,4 +316,93 @@ router.get('/semifinals', async (req, res) => {
     }
 });
 
+// Add qualifier match result
+router.post('/qualifier-result', async (req, res) => {
+    const { 
+        team1_id, 
+        team2_id, 
+        team1_kills, 
+        team2_kills, 
+        game_time,
+        player_kills 
+    } = req.body;
+    
+    try {
+        await db.promise().beginTransaction();
+
+        try {
+            // Update team stats
+            await db.promise().query(`
+                UPDATE teams 
+                SET total_kills = COALESCE(total_kills, 0) + ?, 
+                    matches_played = COALESCE(matches_played, 0) + 1,
+                    game_time = CASE 
+                        WHEN game_time IS NULL THEN ?
+                        ELSE CONCAT(game_time, ', ', ?)
+                    END
+                WHERE id = ?
+            `, [team1_kills, game_time, game_time, team1_id]);
+
+            await db.promise().query(`
+                UPDATE teams 
+                SET total_kills = COALESCE(total_kills, 0) + ?, 
+                    matches_played = COALESCE(matches_played, 0) + 1,
+                    game_time = CASE 
+                        WHEN game_time IS NULL THEN ?
+                        ELSE CONCAT(game_time, ', ', ?)
+                    END
+                WHERE id = ?
+            `, [team2_kills, game_time, game_time, team2_id]);
+
+            // Update player kills and matches played
+            for (const playerKill of player_kills) {
+                await db.promise().query(`
+                    UPDATE players 
+                    SET kills = COALESCE(kills, 0) + ?,
+                        qualifier_kills = COALESCE(qualifier_kills, 0) + ?,
+                        matches_played = COALESCE(matches_played, 0) + 1
+                    WHERE id = ?
+                `, [playerKill.kills, playerKill.kills, playerKill.player_id]);
+            }
+
+            // Add match record
+            await db.promise().query(`
+                INSERT INTO matches 
+                (team1_id, team2_id, team1_kills, team2_kills, game_time, match_type)
+                VALUES (?, ?, ?, ?, ?, 'qualifier')
+            `, [team1_id, team2_id, team1_kills, team2_kills, game_time]);
+
+            // Check and update qualification status
+            const teams = await db.promise().query(
+                'SELECT id, total_kills FROM teams WHERE id IN (?, ?)',
+                [team1_id, team2_id]
+            );
+
+            // Update qualification status for teams that reach 100+ kills
+            for (const team of teams[0]) {
+                if (team.total_kills >= 100) {
+                    await db.promise().query(
+                        'UPDATE teams SET is_qualified = TRUE WHERE id = ?',
+                        [team.id]
+                    );
+                }
+            }
+
+            await db.promise().commit();
+            res.json({ message: 'Match results recorded successfully' });
+
+        } catch (error) {
+            await db.promise().rollback();
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Error recording match result:', error);
+        res.status(500).json({ 
+            error: 'Failed to record match result',
+            details: error.message 
+        });
+    }
+});
+
 module.exports = router;

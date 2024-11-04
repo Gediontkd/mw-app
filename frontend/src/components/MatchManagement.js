@@ -1,85 +1,23 @@
+// MatchManagement.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
-const styles = {
-  container: {
-    padding: '20px',
-    maxWidth: '1200px',
-    margin: '0 auto'
-  },
-  form: {
-    backgroundColor: '#f8f9fa',
-    padding: '20px',
-    borderRadius: '8px',
-    marginBottom: '30px'
-  },
-  inputGroup: {
-    marginBottom: '15px'
-  },
-  label: {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: 'bold'
-  },
-  select: {
-    width: '100%',
-    padding: '8px',
-    borderRadius: '4px',
-    border: '1px solid #ddd',
-    marginBottom: '10px'
-  },
-  input: {
-    width: '100%',
-    padding: '8px',
-    borderRadius: '4px',
-    border: '1px solid #ddd',
-    marginBottom: '10px'
-  },
-  button: {
-    padding: '10px 20px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer'
-  },
-  matchList: {
-    marginTop: '20px'
-  },
-  matchCard: {
-    backgroundColor: 'white',
-    padding: '15px',
-    borderRadius: '8px',
-    marginBottom: '10px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-  },
-  errorMessage: {
-    color: '#dc3545',
-    padding: '10px',
-    backgroundColor: '#ffe6e6',
-    borderRadius: '4px',
-    marginBottom: '10px'
-  },
-  successMessage: {
-    color: '#28a745',
-    padding: '10px',
-    backgroundColor: '#e8f5e9',
-    borderRadius: '4px',
-    marginBottom: '10px'
-  }
-};
+import './MatchManagement.css';
 
 const MatchManagement = () => {
   const [matches, setMatches] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [players, setPlayers] = useState([]);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState('');
   const [newMatch, setNewMatch] = useState({
     team1_id: '',
     team2_id: '',
-    team1_kills: 0,
-    team2_kills: 0,
+    team1_player1_kills: 0,
+    team1_player2_kills: 0,
+    team2_player1_kills: 0,
+    team2_player2_kills: 0,
     game_time: '',
     match_type: 'qualifier'
   });
@@ -90,12 +28,14 @@ const MatchManagement = () => {
 
   const fetchData = async () => {
     try {
-      const [matchesRes, teamsRes] = await Promise.all([
+      const [matchesRes, teamsRes, playersRes] = await Promise.all([
         axios.get('http://localhost:5000/matches'),
-        axios.get('http://localhost:5000/teams')
+        axios.get('http://localhost:5000/teams'),
+        axios.get('http://localhost:5000/players')
       ]);
       setMatches(matchesRes.data);
       setTeams(teamsRes.data);
+      setPlayers(playersRes.data);
     } catch (error) {
       setError('Failed to fetch data');
     }
@@ -108,9 +48,6 @@ const MatchManagement = () => {
     if (newMatch.team1_id === newMatch.team2_id) {
       return 'Cannot select the same team twice';
     }
-    if (newMatch.team1_kills < 0 || newMatch.team2_kills < 0) {
-      return 'Kill counts cannot be negative';
-    }
     
     const team1 = teams.find(t => t.id === parseInt(newMatch.team1_id));
     const team2 = teams.find(t => t.id === parseInt(newMatch.team2_id));
@@ -120,6 +57,10 @@ const MatchManagement = () => {
     }
     
     return null;
+  };
+
+  const getTeamPlayers = (teamId) => {
+    return players.filter(player => player.team_id === parseInt(teamId));
   };
 
   const handleSubmit = async (e) => {
@@ -136,30 +77,58 @@ const MatchManagement = () => {
     }
 
     try {
-      if (newMatch.match_type === 'qualifier') {
-        await axios.post('http://localhost:5000/matches/qualifier-result', {
-          team1_id: parseInt(newMatch.team1_id),
-          team2_id: parseInt(newMatch.team2_id),
-          team1_kills: parseInt(newMatch.team1_kills),
-          team2_kills: parseInt(newMatch.team2_kills),
-          game_time: newMatch.game_time || new Date().toLocaleTimeString()
-        });
-      }
+      // Get players for both teams
+      const team1Players = getTeamPlayers(newMatch.team1_id);
+      const team2Players = getTeamPlayers(newMatch.team2_id);
 
-      // Reset form and refresh data
+      // Calculate total kills for each team
+      const team1_kills = parseInt(newMatch.team1_player1_kills) + parseInt(newMatch.team1_player2_kills);
+      const team2_kills = parseInt(newMatch.team2_player1_kills) + parseInt(newMatch.team2_player2_kills);
+
+      // Prepare player kills data
+      const player_kills = [
+        {
+          player_id: team1Players[0]?.id,
+          kills: parseInt(newMatch.team1_player1_kills)
+        },
+        {
+          player_id: team1Players[1]?.id,
+          kills: parseInt(newMatch.team1_player2_kills)
+        },
+        {
+          player_id: team2Players[0]?.id,
+          kills: parseInt(newMatch.team2_player1_kills)
+        },
+        {
+          player_id: team2Players[1]?.id,
+          kills: parseInt(newMatch.team2_player2_kills)
+        }
+      ].filter(p => p.player_id && p.kills >= 0);
+
+      // Send match result
+      await axios.post('http://localhost:5000/matches/qualifier-result', {
+        team1_id: parseInt(newMatch.team1_id),
+        team2_id: parseInt(newMatch.team2_id),
+        team1_kills,
+        team2_kills,
+        player_kills,
+        game_time: newMatch.game_time || new Date().toLocaleTimeString()
+      });
+
+      setSuccess('Match added successfully');
       setNewMatch({
         team1_id: '',
         team2_id: '',
-        team1_kills: 0,
-        team2_kills: 0,
+        team1_player1_kills: 0,
+        team1_player2_kills: 0,
+        team2_player1_kills: 0,
+        team2_player2_kills: 0,
         game_time: '',
         match_type: 'qualifier'
       });
-      setSuccess('Match added successfully');
       fetchData();
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to add match');
-      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
@@ -173,22 +142,19 @@ const MatchManagement = () => {
     }));
   };
 
-  const getTeamsByGroup = (groupName) => {
-    return teams.filter(team => team.group_name === groupName);
-  };
-
   return (
-    <div style={styles.container}>
+    <div className="match-container">
       <h2>Qualifier Match Management</h2>
-      {error && <div style={styles.errorMessage}>{error}</div>}
-      {success && <div style={styles.successMessage}>{success}</div>}
+      {error && <div className="error-message">{error}</div>}
+      {success && <div className="success-message">{success}</div>}
 
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <div style={styles.inputGroup}>
-          <label style={styles.label}>Select Group</label>
+      <form onSubmit={handleSubmit} className="match-form">
+        <div className="input-group">
+          <label>Select Group</label>
           <select
-            style={styles.select}
+            value={selectedGroup}
             onChange={(e) => {
+              setSelectedGroup(e.target.value);
               setNewMatch(prev => ({
                 ...prev,
                 team1_id: '',
@@ -202,91 +168,107 @@ const MatchManagement = () => {
           </select>
         </div>
 
-        <div style={styles.inputGroup}>
-          <label style={styles.label}>Team 1</label>
+        {/* Team 1 Section */}
+        <div className="team-section">
+          <label>Team 1</label>
           <select
             name="team1_id"
             value={newMatch.team1_id}
             onChange={handleChange}
-            style={styles.select}
             required
           >
             <option value="">Select Team 1</option>
-            {teams.map(team => (
-              <option key={team.id} value={team.id}>
-                {team.team_name} (Kills: {team.total_kills || 0})
-              </option>
-            ))}
+            {teams
+              .filter(team => team.group_name === selectedGroup)
+              .map(team => (
+                <option key={team.id} value={team.id}>
+                  {team.team_name}
+                </option>
+              ))
+            }
           </select>
 
-          <label style={styles.label}>Team 1 Kills</label>
-          <input
-            type="number"
-            name="team1_kills"
-            value={newMatch.team1_kills}
-            onChange={handleChange}
-            min="0"
-            style={styles.input}
-            required
-          />
+          {newMatch.team1_id && (
+            <div className="player-kills">
+              {getTeamPlayers(newMatch.team1_id).map((player, idx) => (
+                <div key={player.id} className="player-input">
+                  <label>{player.name} Kills:</label>
+                  <input
+                    type="number"
+                    name={`team1_player${idx + 1}_kills`}
+                    value={newMatch[`team1_player${idx + 1}_kills`]}
+                    onChange={handleChange}
+                    min="0"
+                    required
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div style={styles.inputGroup}>
-          <label style={styles.label}>Team 2</label>
+        {/* Team 2 Section */}
+        <div className="team-section">
+          <label>Team 2</label>
           <select
             name="team2_id"
             value={newMatch.team2_id}
             onChange={handleChange}
-            style={styles.select}
             required
           >
             <option value="">Select Team 2</option>
-            {teams.map(team => (
-              <option key={team.id} value={team.id}>
-                {team.team_name} (Kills: {team.total_kills || 0})
-              </option>
-            ))}
+            {teams
+              .filter(team => team.group_name === selectedGroup)
+              .map(team => (
+                <option key={team.id} value={team.id}>
+                  {team.team_name}
+                </option>
+              ))
+            }
           </select>
 
-          <label style={styles.label}>Team 2 Kills</label>
-          <input
-            type="number"
-            name="team2_kills"
-            value={newMatch.team2_kills}
-            onChange={handleChange}
-            min="0"
-            style={styles.input}
-            required
-          />
+          {newMatch.team2_id && (
+            <div className="player-kills">
+              {getTeamPlayers(newMatch.team2_id).map((player, idx) => (
+                <div key={player.id} className="player-input">
+                  <label>{player.name} Kills:</label>
+                  <input
+                    type="number"
+                    name={`team2_player${idx + 1}_kills`}
+                    value={newMatch[`team2_player${idx + 1}_kills`]}
+                    onChange={handleChange}
+                    min="0"
+                    required
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <button 
           type="submit" 
-          style={{
-            ...styles.button,
-            opacity: loading ? 0.7 : 1,
-            cursor: loading ? 'not-allowed' : 'pointer'
-          }}
+          className={`submit-button ${loading ? 'loading' : ''}`}
           disabled={loading}
         >
           {loading ? 'Adding Match...' : 'Add Match'}
         </button>
       </form>
 
-      <div style={styles.matchList}>
+      <div className="match-list">
         <h3>Recent Matches</h3>
         {matches.map(match => (
-          <div key={match.id} style={styles.matchCard}>
-            <div>
+          <div key={match.id} className="match-card">
+            <div className="match-teams">
               <strong>
                 {teams.find(t => t.id === match.team1_id)?.team_name} vs{' '}
                 {teams.find(t => t.id === match.team2_id)?.team_name}
               </strong>
             </div>
-            <div>
+            <div className="match-score">
               Score: {match.team1_kills} - {match.team2_kills}
             </div>
-            {match.game_time && <div>Time: {match.game_time}</div>}
+            {match.game_time && <div className="match-time">Time: {match.game_time}</div>}
           </div>
         ))}
       </div>

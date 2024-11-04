@@ -192,3 +192,153 @@
   .nav-link.red:hover {
     background: #e53935; /* Slightly darker red */
   }
+
+  .nav-link.purple {
+    background-color: #9c27b0;
+    color: white;
+  }
+  
+  .nav-link.purple:hover {
+    background-color: #7b1fa2;
+  }
+  
+  .admin-semifinals {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .qualified-teams {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+  }
+  
+  .qualified-teams .group {
+    flex: 1;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .qualified-teams .team-card {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 5px 0;
+    background: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  .qualified-teams .position {
+    width: 30px;
+    font-weight: bold;
+    color: #666;
+  }
+  
+  .qualified-teams .team-name {
+    flex: 1;
+  }
+  
+  .qualified-teams .kills {
+    color: #666;
+  }
+  
+  .create-semifinals {
+    width: 100%;
+    padding: 12px;
+    background: #9c27b0;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    margin: 20px 0;
+    cursor: pointer;
+  }
+  
+  .create-semifinals:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .semifinal-match {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .match-teams {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+  }
+  
+  .match-teams .team {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+  }
+  
+  .match-teams .vs {
+    padding: 0 20px;
+    color: #666;
+  }
+  
+  .result-input {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+  }
+  
+  .result-input select,
+  .result-input input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .result-input button {
+    padding: 8px 16px;
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .result-input button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .game-results {
+    margin-top: 15px;
+  }
+  
+  .game-result {
+    padding: 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin: 5px 0;
+  }
+  
+  .error-message {
+    background: #ffebee;
+    color: #c62828;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+  }
+  
+  .success-message {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+  }

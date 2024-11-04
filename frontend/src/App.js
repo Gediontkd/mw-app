@@ -43,12 +43,12 @@ const Navigation = () => {
               >
                 Live Rankings
               </Link>
-              <Link
+              {/* <Link
                 to="/bracket-generation"
                 className={`nav-link ${location.pathname === '/bracket-generation' ? 'active' : ''}`}
               >
                 Finals
-              </Link>
+              </Link> */}
             </>
           )}
         </div>

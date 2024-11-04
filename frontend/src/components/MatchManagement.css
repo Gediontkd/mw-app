@@ -1,0 +1,124 @@
+/* MatchManagement.css */
+.match-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .match-form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+  
+  .input-group {
+    margin-bottom: 15px;
+  }
+  
+  .team-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background-color: white;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+  }
+  
+  .player-kills {
+    margin-top: 10px;
+  }
+  
+  .player-input {
+    margin-bottom: 10px;
+  }
+  
+  .player-input input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+  
+  .submit-button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+  }
+  
+  .submit-button:hover {
+    background-color: #45a049;
+  }
+  
+  .submit-button.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  
+  .match-list {
+    margin-top: 20px;
+  }
+  
+  .match-card {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .match-teams {
+    margin-bottom: 5px;
+  }
+  
+  .match-score {
+    color: #666;
+  }
+  
+  .match-time {
+    color: #888;
+    font-size: 0.9em;
+    margin-top: 5px;
+  }
+  
+  .error-message {
+    color: #dc3545;
+    padding: 10px;
+    background-color: #ffe6e6;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  
+  .success-message {
+    color: #28a745;
+    padding: 10px;
+    background-color: #e8f5e9;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  
+  /* Responsive styles */
+  @media (min-width: 768px) {
+    .player-kills {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+  }

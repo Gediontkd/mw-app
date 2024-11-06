@@ -1,12 +1,13 @@
 // backend/db.js
 const mysql = require('mysql2');
+require('dotenv').config();
 
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'admin',
-    password: 'admin',
-    database: 'tournament_db',
-    port: 3306
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'admin',
+    password: process.env.DB_PASSWORD || 'admin',
+    database: process.env.DB_NAME || 'tournament_db',
+    port: process.env.DB_PORT || 3306
 });
 
 // Connect to MySQL

@@ -1,6 +1,7 @@
 // TournamentBracket.jsx
 import React, { useState, useEffect } from 'react';
 import './TournamentBracket.css';
+import config from '../config';
 
 const TournamentBracket = () => {
   const [brackets, setBrackets] = useState({
@@ -22,10 +23,10 @@ const TournamentBracket = () => {
     try {
       // Fetch all required data in parallel
       const [phaseRes, semisRes, finalRes, statsRes] = await Promise.all([
-        fetch('http://localhost:5000/phases/current'),
-        fetch('http://localhost:5000/matches/semifinals'),
-        fetch('http://localhost:5000/matches/finals'),
-        fetch('http://localhost:5000/tournament/final-stats')
+        fetch(`${config.API_BASE_URL}/phases/current`),
+        fetch(`${config.API_BASE_URL}/matches/semifinals`),
+        fetch(`${config.API_BASE_URL}/matches/finals`),
+        fetch(`${config.API_BASE_URL}/tournament/final-stats`)
       ]);
 
       const [phaseData, semisData, finalData, statsData] = await Promise.all([

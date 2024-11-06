@@ -1,0 +1,587 @@
+.bracket-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .bracket-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+  }
+  
+  .error-message {
+    background-color: #fee2e2;
+    color: #dc2626;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  
+  .qualified-teams {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  
+  .group {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .group h3 {
+    margin: 0 0 15px 0;
+    color: #2c5282;
+  }
+  
+  .team-card {
+    padding: 10px;
+    background: #f7fafc;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  
+  .team-card:last-child {
+    margin-bottom: 0;
+  }
+  
+  .team-name {
+    font-weight: bold;
+    color: #2d3748;
+  }
+  
+  .team-stats {
+    display: block;
+    font-size: 0.9em;
+    color: #4a5568;
+    margin-top: 4px;
+  }
+  
+  .generate-section {
+    text-align: center;
+    padding: 30px;
+    background: #f7fafc;
+    border-radius: 8px;
+  }
+  
+  .info-text {
+    margin-bottom: 15px;
+    color: #4a5568;
+  }
+  
+  .generate-button {
+    padding: 10px 20px;
+    background: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .generate-button:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+  }
+  
+  .semifinals-bracket {
+    margin-top: 30px;
+  }
+  
+  .match-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding: 15px;
+  }
+  
+  .match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .match-status {
+    font-size: 0.9em;
+    color: #4a5568;
+  }
+  
+  .team-matchup {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .vs {
+    text-align: center;
+    font-weight: bold;
+    color: #4a5568;
+  }
+  
+  .group-label {
+    font-size: 0.8em;
+    color: #718096;
+    margin-top: 4px;
+  }
+  
+  .game-results {
+    background: #f7fafc;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+  
+  .game-result {
+    padding: 5px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .game-result:last-child {
+    border-bottom: none;
+  }
+  
+  .manage-match-button {
+    width: 100%;
+    padding: 10px;
+    background: #4299e1;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  .manage-match-button:hover {
+    background: #3182ce;
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+  }
+  
+  @media (max-width: 768px) {
+    .qualified-teams {
+      grid-template-columns: 1fr;
+    }
+  
+    .team-matchup {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+  
+    .vs {
+      margin: 10px 0;
+    }
+  }
+
+  .winner-badge {
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #dcfce7;
+    color: #166534;
+    text-align: center;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+  
+  .game-results {
+    background: #f8fafc;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 10px 0;
+  }
+  
+  .game-result {
+    padding: 6px 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  
+  .game-result:last-child {
+    border-bottom: none;
+  }
+
+  .finals-section {
+    margin-top: 40px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .finals-card {
+    background: linear-gradient(to bottom, #002efada, hsl(0, 0%, 100%));
+    color: rgba(255, 0, 0, 0.952);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+  
+  .finals-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 15px;
+  }
+  
+  .finals-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #ffd700;
+  }
+  
+  .finals-status {
+    font-size: 18px;
+    color: #a0aec0;
+  }
+  
+  .finals-prize-pool {
+    background: rgba(153, 153, 153, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+  
+  .prize-split {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #a0aec0;
+  }
+  
+  .team-matchup.wager-style {
+    display: grid;
+    grid-template-columns: 2fr 1fr 2fr;
+    gap: 20px;
+    align-items: center;
+    background: rgba(255, 10, 10, 0.2);
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+  
+  .finalist {
+    text-align: center;
+  }
+  
+  .finalist .team-name {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .finalist .team-score {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffd700;
+  }
+  
+  .vs-block {
+    text-align: center;
+  }
+  
+  .vs-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: #a0aec0;
+  }
+  
+  .match-type {
+    font-size: 14px;
+    color: #718096;
+    margin-top: 4px;
+  }
+  
+  .final-games {
+    display: grid;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .final-game {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+  }
+  
+  .game-header {
+    font-weight: 500;
+    color: #a0aec0;
+    margin-bottom: 8px;
+  }
+  
+  .game-score {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .score-divider {
+    color: #4a5568;
+  }
+  
+  .game-winner {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #68d391;
+  }
+  
+  .finals-winner {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    color: #ffd700;
+    padding: 20px;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  .manage-finals-button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #6366f1;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 6px;
+    margin-top: 20px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  .manage-finals-button:hover {
+    background: #4f46e5;
+  }
+  
+  .generate-finals {
+    text-align: center;
+    padding: 30px;
+    background: #f8fafc;
+    border-radius: 8px;
+  }
+
+  /* @font-face {
+    font-family: 'DIMIS';
+    src: url('/src/assets/fonts/DIMIS___.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  } */
+
+  .tournament-stats {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .stats-title {
+    text-align: center;
+    color: #ffd700;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .stats-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  .stats-section {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+  
+  .stats-section h4 {
+    color: #e2e8f0;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+  }
+  
+  .stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .stat-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+  }
+  
+  .stat-rank {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ffd700;
+    width: 2rem;
+    text-align: center;
+  }
+  
+  .stat-info {
+    flex: 1;
+  }
+  
+  .stat-info .player-name {
+    font-weight: 500;
+    color: #ffffff;
+  }
+  
+  .stat-info .team-name {
+    font-size: 0.875rem;
+    color: #a0aec0;
+    margin-top: 0.25rem;
+  }
+  
+  .stat-kills {
+    text-align: right;
+  }
+  
+  .kill-count {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #68d391;
+    margin-right: 0.25rem;
+  }
+  
+  .kill-label {
+    color: #a0aec0;
+    font-size: 0.875rem;
+  }
+  
+  @media (max-width: 768px) {
+    .stats-container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .tournament-stats {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .stats-title {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #ffd700;
+    margin-bottom: 1.5rem;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  .phase-stats {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1.25rem;
+    border-radius: 8px;
+  }
+  
+  .phase-stats h5 {
+    text-align: center;
+    color: #e2e8f0;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+  
+  .stat-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-row:last-child {
+    margin-bottom: 0;
+  }
+  
+  .rank {
+    font-weight: bold;
+    color: #ffd700;
+    width: 2rem;
+    text-align: center;
+  }
+  
+  .player-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .player-info .name {
+    font-weight: 500;
+    color: #ffffff;
+  }
+  
+  .player-info .team {
+    font-size: 0.875rem;
+    color: #a0aec0;
+  }
+  
+  .kills {
+    text-align: right;
+  }
+  
+  .kills .count {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #68d391;
+    margin-right: 0.25rem;
+  }
+  
+  .kills .label {
+    color: #a0aec0;
+    font-size: 0.875rem;
+  }
+  
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .phase-stats {
+      margin-bottom: 1rem;
+    }
+  }
+
+  

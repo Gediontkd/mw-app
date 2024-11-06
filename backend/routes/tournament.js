@@ -117,4 +117,68 @@ router.get('/final-stats', async (req, res) => {
     }
 });
 
+router.post('/check-qualification/:group', async (req, res) => {
+    const { group } = req.params;
+    try {
+      await checkAndUpdateQualification(db, group);
+      res.json({ message: 'Qualification check complete' });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  router.get('/phase/current', async (req, res) => {
+    try {
+      const [phases] = await db.promise().query(`
+        SELECT * FROM tournament_phases 
+        WHERE phase_status = 'active' 
+        ORDER BY started_at DESC 
+        LIMIT 1
+      `);
+      res.json(phases[0] || { phase_name: 'enrollment' });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  router.post('/reset', async (req, res) => {
+    try {
+        await db.promise().beginTransaction();
+
+        try {
+            // Reset player stats
+            await db.promise().query(`
+                UPDATE players 
+                SET team_id = NULL,
+                    kills = 0,
+                    qualifier_kills = 0,
+                    finals_kills = 0,
+                    matches_played = 0
+            `);
+
+            // Delete all matches and results
+            await db.promise().query('DELETE FROM matches');
+            await db.promise().query('DELETE FROM semifinal_results');
+            await db.promise().query('DELETE FROM final_results');
+
+            // Delete all teams
+            await db.promise().query('DELETE FROM teams');
+
+            // Reset tournament phases
+            await db.promise().query(`
+                DELETE FROM tournament_phases WHERE phase_status = 'active'
+            `);
+
+            await db.promise().commit();
+            res.json({ message: 'Tournament reset successfully' });
+        } catch (error) {
+            await db.promise().rollback();
+            throw error;
+        }
+    } catch (error) {
+        console.error('Error resetting tournament:', error);
+        res.status(500).json({ error: 'Failed to reset tournament' });
+    }
+});
+
 module.exports = router;

@@ -1,0 +1,139 @@
+.tournament-recap {
+    padding: 2rem;
+    background: linear-gradient(to bottom, #1a1f35, #2d3748);
+    border-radius: 12px;
+    color: white;
+    margin: 2rem 0;
+  }
+  
+  .recap-title {
+    text-align: center;
+    color: #ffd700;
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .winner-section {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 8px;
+  }
+  
+  .trophy-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .winner-team {
+    margin-top: 1rem;
+  }
+  
+  .winner-team .team-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ffd700;
+  }
+  
+  .winner-team .player-names {
+    font-size: 1.1rem;
+    color: #e2e8f0;
+    margin: 0.5rem 0;
+  }
+  
+  .winner-team .total-kills {
+    font-size: 1rem;
+    color: #a0aec0;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  
+  .stats-section {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+  
+  .stats-section h3 {
+    color: #e2e8f0;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .top-players {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .player-stat {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+  }
+  
+  .rank {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ffd700;
+    width: 40px;
+    text-align: center;
+  }
+  
+  .player-info {
+    flex: 1;
+  }
+  
+  .player-name {
+    font-weight: 500;
+  }
+  
+  .team-name {
+    font-size: 0.875rem;
+    color: #a0aec0;
+  }
+  
+  .kills {
+    text-align: right;
+  }
+  
+  .kill-count {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #68d391;
+    margin-right: 0.5rem;
+  }
+  
+  .kill-label {
+    color: #a0aec0;
+    font-size: 0.875rem;
+  }
+  
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: #a0aec0;
+  }
+  
+  .error-message {
+    text-align: center;
+    padding: 2rem;
+    color: #f56565;
+    background: rgba(245, 101, 101, 0.1);
+    border-radius: 8px;
+  }

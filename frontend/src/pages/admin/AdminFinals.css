@@ -1,0 +1,39 @@
+.team-section {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .team-section h4 {
+    margin: 0 0 15px 0;
+    color: #1e293b;
+  }
+  
+  .player-input {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .player-input label {
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  .player-input input {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+  }
+  
+  .team-total {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+    color: #1e293b;
+    font-weight: bold;
+  }
+  

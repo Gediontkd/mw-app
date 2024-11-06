@@ -1,7 +1,8 @@
-// TournamentDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './tournament.css';
+import Image2 from '../../assets/images/no_background_logo_titled.png';
+import config from '../../config';
 
 // Import player images
 import player1 from '../../assets/players/bblade_card.png';
@@ -25,19 +26,29 @@ import player18 from '../../assets/players/tenaglia_card.png';
 import player19 from '../../assets/players/waartex_card.png';
 import player20 from '../../assets/players/zanx_card.png';
 
-const styles = {
-  adSpace: {
-    width: '100%',
-    height: '120px',
-    backgroundColor: '#f0f0f0',
-    marginBottom: '30px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: '8px',
-    border: '2px dashed #ccc',
-  }
-};
+// Define fixed player slots
+const FIXED_PLAYER_SLOTS = [
+  { id: 1, image: player1, position: "Player Slot 1" },
+  { id: 2, image: player2, position: "Player Slot 2" },
+  { id: 3, image: player3, position: "Player Slot 3" },
+  { id: 4, image: player4, position: "Player Slot 4" },
+  { id: 5, image: player5, position: "Player Slot 5" },
+  { id: 6, image: player6, position: "Player Slot 6" },
+  { id: 7, image: player7, position: "Player Slot 7" },
+  { id: 8, image: player8, position: "Player Slot 8" },
+  { id: 9, image: player9, position: "Player Slot 9" },
+  { id: 10, image: player10, position: "Player Slot 10" },
+  { id: 11, image: player11, position: "Player Slot 11" },
+  { id: 12, image: player12, position: "Player Slot 12" },
+  { id: 13, image: player13, position: "Player Slot 13" },
+  { id: 14, image: player14, position: "Player Slot 14" },
+  { id: 15, image: player15, position: "Player Slot 15" },
+  { id: 16, image: player16, position: "Player Slot 16" },
+  { id: 17, image: player17, position: "Player Slot 17" },
+  { id: 18, image: player18, position: "Player Slot 18" },
+  { id: 19, image: player19, position: "Player Slot 19" },
+  { id: 20, image: player20, position: "Player Slot 20" }
+];
 
 const TournamentDashboard = () => {
   const [players, setPlayers] = useState([]);
@@ -45,39 +56,12 @@ const TournamentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [expandView, setExpandView] = useState(false);
 
-  // Tournament info remains static
   const tournamentInfo = {
     name: "Most Wanted Tournament",
     date: "2024-03-21",
     organizer: "EGamex",
     totalPlayers: 20,
     playersPerTeam: 2
-  };
-
-  const getPlayerImage = (playerId) => {
-    const imageMap = {
-      89: player1,  // hhh
-      90: player2,  // kebede
-      91: player3,  // Gedion
-      92: player4,  // buki
-      93: player5,  // dani
-      94: player6,  // alem
-      95: player7,  // test
-      96: player8,  // alem
-      97: player9,  // tedi
-      98: player10, // geme
-      99: player11, // sosi
-      100: player12, // hana
-      101: player13, // jon
-      102: player14, // fff
-      103: player15, // adsa
-      104: player16, // dafasd
-      105: player17, // dsads
-      106: player18, // dada
-      107: player19, // dfgdsf
-      108: player20  // adsd
-    };
-    return imageMap[playerId] || player1;
   };
 
   useEffect(() => {
@@ -89,8 +73,8 @@ const TournamentDashboard = () => {
   const fetchData = async () => {
     try {
       const [playersRes, teamsRes] = await Promise.all([
-        axios.get('http://localhost:5000/players'),
-        axios.get('http://localhost:5000/teams')
+        axios.get(`${config.API_BASE_URL}/players`),
+        axios.get(`${config.API_BASE_URL}/teams`)
       ]);
       setPlayers(playersRes.data);
       setTeams(teamsRes.data);
@@ -106,9 +90,8 @@ const TournamentDashboard = () => {
 
   return (
     <div className="tournament-container">
-      {/* Ad Space */}
-      <div style={styles.adSpace}>
-        <span>Advertisement Space</span>
+      <div className="banner-image">
+        <img src={Image2} alt="Event Banner" />
       </div>
 
       {/* Tournament Header */}
@@ -138,32 +121,38 @@ const TournamentDashboard = () => {
         </div>
       </div>
 
-      {/* Enrolled Players Section */}
+      {/* Player Section */}
       <div className="section">
         <div className="section-header">
-          <h2 className="section-title">Enrolled Players</h2>
+          <h2 className="section-title">Players</h2>
           <button 
             className="expand-button"
             onClick={() => setExpandView(!expandView)}
           >
-            {expandView ? 'Show Images' : 'Click to expand'}
+            {expandView ? 'Show Images' : 'Players Name'}
           </button>
         </div>
         <div className="player-grid">
-          {players.map((player) => (
-            <div key={player.id} className="player-card">
-              {expandView ? (
+          {expandView ? (
+            // Show enrolled players' names when in expand view
+            players.map((player) => (
+              <div key={player.id} className="player-card">
                 <div className="player-info">
                   <div className="player-name">{player.name}</div>
                   <div className={`player-status ${player.team_id ? 'assigned' : 'unassigned'}`}>
                     {player.team_id ? 'In Team' : 'Not Assigned'}
                   </div>
                 </div>
-              ) : (
+              </div>
+            ))
+          ) : (
+            // Show all fixed image slots regardless of enrolled players
+            FIXED_PLAYER_SLOTS.map((slot) => (
+              <div key={slot.id} className="player-card">
                 <div className="player-image-wrapper">
                   <img 
-                    src={getPlayerImage(player.id)}
-                    alt={player.name}
+                    src={slot.image}
+                    alt={slot.position}
                     className="player-image"
                     style={{ 
                       width: '100%', 
@@ -173,9 +162,9 @@ const TournamentDashboard = () => {
                     }}
                   />
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            ))
+          )}
         </div>
       </div>
 

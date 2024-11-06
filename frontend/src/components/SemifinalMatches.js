@@ -1,124 +1,205 @@
-// // src/components/SemifinalMatches.js
-// import React, { useState, useEffect } from 'react';
-// import axios from 'axios';
-// import './TournamentPhases.css';
+// SemifinalMatches.jsx
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './Playoffs.css';
+import config from '../config';
 
-// const SemifinalMatches = ({ onSemifinalsComplete }) => {
-//   const [matches, setMatches] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState('');
+const SemifinalMatches = () => {
+  const [matches, setMatches] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentGame, setCurrentGame] = useState({
+    matchId: null,
+    gameNumber: null,
+    playerKills: {}
+  });
 
-//   useEffect(() => {
-//     fetchSemifinals();
-//   }, []);
+  useEffect(() => {
+    fetchData();
+    const interval = setInterval(fetchData, 30000); // Auto refresh
+    return () => clearInterval(interval);
+  }, []);
 
-//   const fetchSemifinals = async () => {
-//     try {
-//       const response = await axios.get('http://localhost:5000/matches/semifinals');
-//       setMatches(response.data);
-//       setLoading(false);
-//     } catch (error) {
-//       setError('Failed to fetch semifinal matches');
-//       setLoading(false);
-//     }
-//   };
+  const fetchData = async () => {
+    try {
+      const [matchesRes, playersRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/matches/semifinals`),
+        axios.get(`${config.API_BASE_URL}/players`)
+      ]);
+      setMatches(matchesRes.data);
+      setPlayers(playersRes.data);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to fetch semifinal data');
+      setLoading(false);
+    }
+  };
 
-//   const handleMatchResult = async (matchId, gameNumber, result) => {
-//     try {
-//       await axios.post(`http://localhost:5000/matches/semifinal-result`, {
-//         match_id: matchId,
-//         game_number: gameNumber,
-//         ...result
-//       });
-//       fetchSemifinals();
+  const handlePlayerKillChange = (playerId, kills) => {
+    setCurrentGame(prev => ({
+      ...prev,
+      playerKills: {
+        ...prev.playerKills,
+        [playerId]: parseInt(kills) || 0
+      }
+    }));
+  };
 
-//       // Check if semifinals are complete
-//       const updatedResponse = await axios.get('http://localhost:5000/matches/semifinals');
-//       const allComplete = updatedResponse.data.every(match => 
-//         match.wins_team1 === 2 || match.wins_team2 === 2
-//       );
-      
-//       if (allComplete && onSemifinalsComplete) {
-//         onSemifinalsComplete();
-//       }
-//     } catch (error) {
-//       setError('Failed to update match result');
-//     }
-//   };
+  const getMatchPlayers = (teamId) => {
+    return players.filter(p => p.team_id === teamId);
+  };
 
-//   if (loading) return <div>Loading semifinals...</div>;
+  const calculateTeamKills = (teamId) => {
+    const teamPlayers = getMatchPlayers(teamId);
+    return teamPlayers.reduce((total, player) => {
+      return total + (parseInt(currentGame.playerKills[player.id]) || 0);
+    }, 0);
+  };
 
-//   return (
-//     <div className="semifinals-container">
-//       <h2>Semifinals - Best of 3</h2>
-//       {error && <div className="error-message">{error}</div>}
-      
-//       <div className="matches-grid">
-//         {matches.map(match => (
-//           <div key={match.id} className="match-card">
-//             <div className="match-header">Semifinal Match</div>
-//             <div className="teams-container">
-//               <div className="team-row">
-//                 <span>{match.team1_name}</span>
-//                 <span className="wins">{match.wins_team1} wins</span>
-//               </div>
-//               <div className="vs-label">VS</div>
-//               <div className="team-row">
-//                 <span>{match.team2_name}</span>
-//                 <span className="wins">{match.wins_team2} wins</span>
-//               </div>
-//             </div>
-            
-//             {/* Game Results Input */}
-//             {[1, 2, 3].map(gameNumber => {
-//               const isGameEnabled = gameNumber === 1 || 
-//                 (gameNumber === 2 && match.game1_completed) ||
-//                 (gameNumber === 3 && match.game2_completed && match.wins_team1 === 1 && match.wins_team2 === 1);
+  const submitGameResult = async (matchId, gameNumber) => {
+    try {
+      const team1_kills = calculateTeamKills(matches.find(m => m.id === matchId).team1_id);
+      const team2_kills = calculateTeamKills(matches.find(m => m.id === matchId).team2_id);
 
-//               return (
-//                 <div key={gameNumber} className="game-input">
-//                   <h4>Game {gameNumber}</h4>
-//                   {isGameEnabled && !match[`game${gameNumber}_completed`] && (
-//                     <div className="score-input">
-//                       <input
-//                         type="number"
-//                         placeholder="Team 1 Kills"
-//                         min="0"
-//                         onChange={(e) => setMatches(prev => ({
-//                           ...prev,
-//                           [`game${gameNumber}_team1_kills`]: e.target.value
-//                         }))}
-//                       />
-//                       <input
-//                         type="number"
-//                         placeholder="Team 2 Kills"
-//                         min="0"
-//                         onChange={(e) => setMatches(prev => ({
-//                           ...prev,
-//                           [`game${gameNumber}_team2_kills`]: e.target.value
-//                         }))}
-//                       />
-//                       <button
-//                         onClick={() => handleMatchResult(match.id, gameNumber, {
-//                           team1_kills: match[`game${gameNumber}_team1_kills`],
-//                           team2_kills: match[`game${gameNumber}_team2_kills`]
-//                         })}
-//                       >
-//                         Submit Result
-//                       </button>
-//                     </div>
-//                   )}
-//                   {match[`game${gameNumber}_completed`] && (
-//                     <div className="game-result">
-//                       {match[`game${gameNumber}_team1_kills`]} - {match[`game${gameNumber}_team2_kills`]}
-//                     </div>
-//                   )}
-//                 </div>
-//               );
-//             })}
-//           </div>
-//         ))}
-//       </div>
-//     </div>
-//   );
-// };
+      // Format player kills for API
+      const player_kills = Object.entries(currentGame.playerKills).map(([playerId, kills]) => ({
+        player_id: parseInt(playerId),
+        kills: parseInt(kills)
+      }));
+
+      await axios.post(`${config.API_BASE_URL}/matches/semifinal-result`, {
+        match_id: matchId,
+        game_number: gameNumber,
+        team1_kills,
+        team2_kills,
+        player_kills
+      });
+
+      // Reset current game state
+      setCurrentGame({
+        matchId: null,
+        gameNumber: null,
+        playerKills: {}
+      });
+
+      fetchData();
+    } catch (err) {
+      setError('Failed to submit game result');
+    }
+  };
+
+  if (loading) return <div className="loading">Loading semifinals...</div>;
+  if (error) return <div className="error">{error}</div>;
+
+  return (
+    <div className="playoffs-container">
+      <h1 className="playoffs-title">Semifinals - Best of 3</h1>
+
+      <div className="semifinals-grid">
+        {matches.map(match => (
+          <div key={match.id} className="match-card">
+            <div className="match-header">
+              <h2>Semifinal Match</h2>
+              <div className="match-status">
+                Wins: {match.wins_team1} - {match.wins_team2}
+              </div>
+            </div>
+
+            <div className="teams-container">
+              <div className="team-info">
+                <h3>{match.team1_name}</h3>
+                <div className="team-players">
+                  {getMatchPlayers(match.team1_id).map(player => (
+                    <div key={player.id} className="player-name">{player.name}</div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="vs-badge">VS</div>
+
+              <div className="team-info">
+                <h3>{match.team2_name}</h3>
+                <div className="team-players">
+                  {getMatchPlayers(match.team2_id).map(player => (
+                    <div key={player.id} className="player-name">{player.name}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {[1, 2, 3].map(gameNumber => {
+              const isGameCompleted = match[`game${gameNumber}_completed`];
+              const isGameActive = !isGameCompleted && 
+                (gameNumber === 1 || 
+                 (gameNumber === 2 && match.game1_completed) ||
+                 (gameNumber === 3 && match.game1_completed && match.game2_completed && match.wins_team1 === match.wins_team2));
+
+              return (
+                <div key={gameNumber} className="game-section">
+                  <h4>Game {gameNumber}</h4>
+                  
+                  {isGameCompleted ? (
+                    <div className="game-result">
+                      <div className="game-score">
+                        {match[`game${gameNumber}_team1_kills`]} - {match[`game${gameNumber}_team2_kills`]}
+                      </div>
+                      <div className="game-winner">
+                        Winner: {match[`game${gameNumber}_winner`] === match.team1_id ? match.team1_name : match.team2_name}
+                      </div>
+                    </div>
+                  ) : isGameActive ? (
+                    <div className="game-input">
+                      <div className="team-kills">
+                        {getMatchPlayers(match.team1_id).map(player => (
+                          <div key={player.id} className="player-kills">
+                            <label>{player.name} Kills:</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={currentGame.playerKills[player.id] || 0}
+                              onChange={(e) => handlePlayerKillChange(player.id, e.target.value)}
+                            />
+                          </div>
+                        ))}
+                        {getMatchPlayers(match.team2_id).map(player => (
+                          <div key={player.id} className="player-kills">
+                            <label>{player.name} Kills:</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={currentGame.playerKills[player.id] || 0}
+                              onChange={(e) => handlePlayerKillChange(player.id, e.target.value)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <button 
+                        className="submit-result"
+                        onClick={() => submitGameResult(match.id, gameNumber)}
+                      >
+                        Submit Result
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="game-pending">
+                      Waiting for previous game to complete...
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {(match.wins_team1 === 2 || match.wins_team2 === 2) && (
+              <div className="match-winner">
+                Winner: {match.wins_team1 === 2 ? match.team1_name : match.team2_name}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default { SemifinalMatches}

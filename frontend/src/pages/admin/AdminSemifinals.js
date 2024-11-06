@@ -1,11 +1,14 @@
-// AdminSemifinals.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './admin.css';
+import './AdminSemifinals.css';
+import config from '../../config';
 
 const AdminSemifinals = () => {
-  const [qualifiedTeams, setQualifiedTeams] = useState({ A: [], B: [] });
-  const [semifinalMatches, setSemifinalMatches] = useState([]);
+  const [semifinals, setSemifinals] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [activeMatch, setActiveMatch] = useState(null);
+  const [gameNumber, setGameNumber] = useState(1);
+  const [playerKills, setPlayerKills] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -16,26 +19,13 @@ const AdminSemifinals = () => {
 
   const fetchData = async () => {
     try {
-      // Fetch qualified teams
-      const teamsRes = await axios.get('http://localhost:5000/matches/qualified-teams');
-      const teams = teamsRes.data;
+      const [semifinalsRes, playersRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/matches/semifinals`),
+        axios.get(`${config.API_BASE_URL}/players`)
+      ]);
 
-      // Separate and sort teams by group
-      const groupA = teams
-        .filter(team => team.group_name === 'A')
-        .sort((a, b) => b.total_kills - a.total_kills);
-      const groupB = teams
-        .filter(team => team.group_name === 'B')
-        .sort((a, b) => b.total_kills - a.total_kills);
-
-      setQualifiedTeams({
-        A: groupA.slice(0, 2), // Top 2 from A
-        B: groupB.slice(0, 2)  // Top 2 from B
-      });
-
-      // Fetch existing semifinal matches if any
-      const semisRes = await axios.get('http://localhost:5000/matches/semifinals');
-      setSemifinalMatches(semisRes.data);
+      setSemifinals(semifinalsRes.data);
+      setPlayers(playersRes.data);
       setLoading(false);
     } catch (error) {
       setError('Failed to fetch data');
@@ -43,182 +33,186 @@ const AdminSemifinals = () => {
     }
   };
 
-  const createSemifinalMatches = async () => {
-    try {
-      if (semifinalMatches.length > 0) {
-        setError('Semifinal matches already exist');
-        return;
-      }
-
-      if (qualifiedTeams.A.length !== 2 || qualifiedTeams.B.length !== 2) {
-        setError('Need exactly 2 qualified teams from each group');
-        return;
-      }
-
-      // Create semifinal matches following the format:
-      // A1 vs B2 and B1 vs A2
-      const matchups = [
-        {
-          team1_id: qualifiedTeams.A[0].id, // A1
-          team2_id: qualifiedTeams.B[1].id, // B2
-          match_type: 'semifinal',
-          match_order: 1
-        },
-        {
-          team1_id: qualifiedTeams.B[0].id, // B1
-          team2_id: qualifiedTeams.A[1].id, // A2
-          match_type: 'semifinal',
-          match_order: 2
-        }
-      ];
-
-      await axios.post('http://localhost:5000/matches/generate-semifinals', {
-        matches: matchups
-      });
-
-      // Update phase
-      await axios.post('http://localhost:5000/phases', {
-        phase_name: 'semifinals',
-        phase_status: 'active'
-      });
-
-      await fetchData();
-      setMessage('Semifinal matches created successfully');
-    } catch (error) {
-      setError('Failed to create semifinal matches');
-    }
+  const getTeamPlayers = (teamId) => {
+    return players.filter(player => player.team_id === parseInt(teamId));
   };
 
-  const updateMatchResult = async (matchId, gameNumber, team1Kills, team2Kills) => {
+  const handleMatchSelect = (match) => {
+    setActiveMatch(match);
+    setGameNumber(1);
+    setPlayerKills({});
+    setMessage('');
+    setError('');
+  };
+
+  const handlePlayerKillChange = (playerId, kills) => {
+    setPlayerKills(prev => ({
+      ...prev,
+      [playerId]: parseInt(kills) || 0
+    }));
+  };
+
+  const calculateTeamKills = (teamId) => {
+    const teamPlayers = getTeamPlayers(teamId);
+    return teamPlayers.reduce((total, player) => {
+      return total + (parseInt(playerKills[player.id]) || 0);
+    }, 0);
+  };
+
+  const handleSubmitResult = async () => {
+    if (!activeMatch) return;
+
     try {
-      await axios.post(`http://localhost:5000/matches/semifinal-result`, {
-        match_id: matchId,
+      const team1Kills = calculateTeamKills(activeMatch.team1_id);
+      const team2Kills = calculateTeamKills(activeMatch.team2_id);
+
+      await axios.post(`${config.API_BASE_URL}/matches/semifinal-result`, {
+        match_id: activeMatch.id,
         game_number: gameNumber,
-        team1_kills: parseInt(team1Kills),
-        team2_kills: parseInt(team2Kills)
+        team1_kills: team1Kills,
+        team2_kills: team2Kills,
+        player_kills: Object.entries(playerKills).map(([playerId, kills]) => ({
+          player_id: parseInt(playerId),
+          kills: parseInt(kills)
+        }))
       });
 
+      setMessage(`Game ${gameNumber} result recorded successfully`);
       await fetchData();
-      setMessage('Match result updated successfully');
+      setPlayerKills({});
+      
+      // Auto-increment game number if match isn't complete
+      const updatedMatch = (await axios.get(`${config.API_BASE_URL}/matches/semifinals`)).data
+        .find(m => m.id === activeMatch.id);
+        
+      if (updatedMatch.wins_team1 < 2 && updatedMatch.wins_team2 < 2) {
+        setGameNumber(prev => prev + 1);
+      } else {
+        setActiveMatch(null);
+      }
     } catch (error) {
-      setError('Failed to update match result');
+      setError('Failed to submit result');
     }
   };
 
-  const MatchResult = ({ match }) => {
-    const [gameNumber, setGameNumber] = useState(1);
-    const [team1Kills, setTeam1Kills] = useState('');
-    const [team2Kills, setTeam2Kills] = useState('');
+  const canSubmitResult = () => {
+    if (!activeMatch) return false;
 
-    const canAddResult = match.wins_team1 < 2 && match.wins_team2 < 2;
+    const team1Players = getTeamPlayers(activeMatch.team1_id);
+    const team2Players = getTeamPlayers(activeMatch.team2_id);
+    const allPlayers = [...team1Players, ...team2Players];
 
-    return (
-      <div className="semifinal-match">
-        <h3>Semifinal Match {match.match_order}</h3>
-        <div className="match-teams">
-          <div className="team">
-            {match.team1_name} (Wins: {match.wins_team1 || 0})
-          </div>
-          <div className="vs">VS</div>
-          <div className="team">
-            {match.team2_name} (Wins: {match.wins_team2 || 0})
-          </div>
-        </div>
-
-        {canAddResult && (
-          <div className="result-input">
-            <select value={gameNumber} onChange={(e) => setGameNumber(e.target.value)}>
-              <option value={1}>Game 1</option>
-              <option value={2}>Game 2</option>
-              <option value={3}>Game 3</option>
-            </select>
-            <input
-              type="number"
-              placeholder={`${match.team1_name} Kills`}
-              value={team1Kills}
-              onChange={(e) => setTeam1Kills(e.target.value)}
-            />
-            <input
-              type="number"
-              placeholder={`${match.team2_name} Kills`}
-              value={team2Kills}
-              onChange={(e) => setTeam2Kills(e.target.value)}
-            />
-            <button
-              onClick={() => {
-                updateMatchResult(match.id, gameNumber, team1Kills, team2Kills);
-                setTeam1Kills('');
-                setTeam2Kills('');
-              }}
-              disabled={!team1Kills || !team2Kills}
-            >
-              Submit Result
-            </button>
-          </div>
-        )}
-
-        {/* Display previous game results */}
-        <div className="game-results">
-          {match.games?.map((game, idx) => (
-            <div key={idx} className="game-result">
-              Game {idx + 1}: {game.team1_kills} - {game.team2_kills}
-              {game.winner_team_id && ` (Winner: ${
-                game.winner_team_id === match.team1_id ? match.team1_name : match.team2_name
-              })`}
-            </div>
-          ))}
-        </div>
-      </div>
+    return allPlayers.every(player => 
+      playerKills[player.id] !== undefined && 
+      playerKills[player.id] >= 0
     );
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) {
+    return <div className="loading">Loading semifinal matches...</div>;
+  }
 
   return (
     <div className="admin-semifinals">
-      <h2>Semifinals Management</h2>
+      <h2>Semifinals Match Management</h2>
       
       {error && <div className="error-message">{error}</div>}
       {message && <div className="success-message">{message}</div>}
 
-      <div className="qualified-teams">
-        <div className="group">
-          <h3>Group A Qualified</h3>
-          {qualifiedTeams.A.map((team, index) => (
-            <div key={team.id} className="team-card">
-              <div className="position">#{index + 1}</div>
-              <div className="team-name">{team.team_name}</div>
-              <div className="kills">{team.total_kills} kills</div>
+      <div className="semifinals-section">
+        <div className="matches-list">
+          <h3>Semifinal Matches</h3>
+          {semifinals.map((match) => (
+            <div 
+              key={match.id} 
+              className={`match-item ${activeMatch?.id === match.id ? 'active' : ''} 
+                ${match.wins_team1 === 2 || match.wins_team2 === 2 ? 'completed' : ''}`}
+              onClick={() => handleMatchSelect(match)}
+            >
+              <div className="match-header">
+                Semifinal {match.match_order || '1'}
+                <span className="match-score">
+                  ({match.wins_team1 || 0} - {match.wins_team2 || 0})
+                </span>
+              </div>
+              <div className="teams">
+                <div className="team">{match.team1_name}</div>
+                <div className="vs">VS</div>
+                <div className="team">{match.team2_name}</div>
+              </div>
+              {(match.wins_team1 === 2 || match.wins_team2 === 2) && (
+                <div className="winner-badge">
+                  Winner: {match.wins_team1 === 2 ? match.team1_name : match.team2_name}
+                </div>
+              )}
             </div>
           ))}
         </div>
 
-        <div className="group">
-          <h3>Group B Qualified</h3>
-          {qualifiedTeams.B.map((team, index) => (
-            <div key={team.id} className="team-card">
-              <div className="position">#{index + 1}</div>
-              <div className="team-name">{team.team_name}</div>
-              <div className="kills">{team.total_kills} kills</div>
+        {activeMatch && (
+          <div className="match-entry">
+            <h3>Enter Match Results</h3>
+            <div className="game-selector">
+              <label>Game Number:</label>
+              <select 
+                value={gameNumber}
+                onChange={(e) => setGameNumber(parseInt(e.target.value))}
+              >
+                <option value={1}>Game 1</option>
+                <option value={2}>Game 2</option>
+                <option value={3}>Game 3</option>
+              </select>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {semifinalMatches.length === 0 && (
-        <button
-          className="create-semifinals"
-          onClick={createSemifinalMatches}
-          disabled={qualifiedTeams.A.length !== 2 || qualifiedTeams.B.length !== 2}
-        >
-          Create Semifinal Matches
-        </button>
-      )}
+            <div className="teams-input">
+              <div className="team-section">
+                <h4>{activeMatch.team1_name}</h4>
+                {getTeamPlayers(activeMatch.team1_id).map(player => (
+                  <div key={player.id} className="player-input">
+                    <label>{player.name}</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={playerKills[player.id] || ''}
+                      onChange={(e) => handlePlayerKillChange(player.id, e.target.value)}
+                      placeholder="Kills"
+                    />
+                  </div>
+                ))}
+                <div className="team-total">
+                  Total Kills: {calculateTeamKills(activeMatch.team1_id)}
+                </div>
+              </div>
 
-      <div className="semifinal-matches">
-        {semifinalMatches.map(match => (
-          <MatchResult key={match.id} match={match} />
-        ))}
+              <div className="team-section">
+                <h4>{activeMatch.team2_name}</h4>
+                {getTeamPlayers(activeMatch.team2_id).map(player => (
+                  <div key={player.id} className="player-input">
+                    <label>{player.name}</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={playerKills[player.id] || ''}
+                      onChange={(e) => handlePlayerKillChange(player.id, e.target.value)}
+                      placeholder="Kills"
+                    />
+                  </div>
+                ))}
+                <div className="team-total">
+                  Total Kills: {calculateTeamKills(activeMatch.team2_id)}
+                </div>
+              </div>
+            </div>
+
+            <button
+              className="submit-button"
+              onClick={handleSubmitResult}
+              disabled={!canSubmitResult()}
+            >
+              Submit Game {gameNumber} Result
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,21 +1,31 @@
-import React from 'react';
+// App.js
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import config from './config';
+
+// Import components
 import AdminDashboard from './pages/admin/AdminDashboard';
 import TournamentDashboard from './pages/user/TournamentDashboard';
 import LiveRankings from './components/LiveRankings';
 import BracketGeneration from './components/BracketGeneration';
-
-// Import your existing components
 import TeamManagement from './components/TeamManagement';
 import PlayerManagement from './components/PlayerManagement';
 import MatchManagement from './components/MatchManagement';
 import TeamGenerator from './components/TeamGenerator';
 import TournamentPhases from './components/TournamentPhases';
+import AdminSemifinals from './pages/admin/AdminSemifinals';
+import AdminFinals from './pages/admin/AdminFinal';
 import './App.css';
 
-const Navigation = () => {
+// Navigation Component
+const Navigation = ({ tournamentState }) => {
   const location = useLocation();
   const isAdmin = location.pathname.includes('/admin');
+  const { currentPhase, qualifiedTeams } = tournamentState;
+
+  const showBracket = currentPhase === 'semifinals' || currentPhase === 'finals' || 
+    (qualifiedTeams.A >= 2 && qualifiedTeams.B >= 2);
 
   return (
     <nav className="main-nav">
@@ -43,12 +53,21 @@ const Navigation = () => {
               >
                 Live Rankings
               </Link>
-              {/* <Link
-                to="/bracket-generation"
-                className={`nav-link ${location.pathname === '/bracket-generation' ? 'active' : ''}`}
+              <Link 
+                to="/bracket" 
+                className={`nav-link ${location.pathname === '/bracket' ? 'active' : ''}`}
               >
-                Finals
-              </Link> */}
+                Final
+              </Link>
+              {/* {showBracket && (
+                <Link 
+                  to="/bracket" 
+                  className={`nav-link ${location.pathname === '/bracket' ? 'active' : ''}`}
+                >
+                  {currentPhase === 'finals' ? 'Finals' : 'Semifinals'} 
+                  {currentPhase === 'qualifiers' && ` (${qualifiedTeams.A}/2 - ${qualifiedTeams.B}/2)`}
+                </Link>
+              )} */}
             </>
           )}
         </div>
@@ -57,7 +76,7 @@ const Navigation = () => {
           {isAdmin ? (
             <Link to="/" className="nav-link switch-view">Switch to User View</Link>
           ) : (
-            <Link to="/admin" className="nav-link switch-view">Admin View</Link>
+            <Link to="/admin" className="nav-link switch-view">Admin</Link>
           )}
         </div>
       </div>
@@ -65,18 +84,81 @@ const Navigation = () => {
   );
 };
 
+// Admin Routes Component
+const AdminRoutes = () => (
+  <Routes>
+    <Route path="/" element={<AdminDashboard />} />
+    <Route path="/teams" element={<TeamManagement />} />
+    <Route path="/players" element={<PlayerManagement />} />
+    <Route path="/matches" element={<MatchManagement />} />
+    <Route path="/generate-teams" element={<TeamGenerator />} />
+    <Route path="/tournament-phases" element={<TournamentPhases />} />
+    
+  </Routes>
+);
+
+// Main App Component
 function App() {
+  const [tournamentState, setTournamentState] = useState({
+    currentPhase: null,
+    qualifiedTeams: { A: 0, B: 0 },
+    loading: true
+  });
+
+  useEffect(() => {
+    fetchTournamentState();
+    const interval = setInterval(fetchTournamentState, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchTournamentState = async () => {
+    try {
+      const [phaseRes, teamsRes] = await Promise.all([
+        axios.get(`${config.API_BASE_URL}/tournament/phase/current`),
+        axios.get(`${config.API_BASE_URL}/matches/qualified-teams`)
+      ]);
+
+      const teams = teamsRes.data;
+      setTournamentState({
+        currentPhase: phaseRes.data.phase_name || 'qualifiers',
+        qualifiedTeams: {
+          A: teams.filter(t => t.group_name === 'A' && t.is_qualified).length,
+          B: teams.filter(t => t.group_name === 'B' && t.is_qualified).length
+        },
+        loading: false
+      });
+    } catch (error) {
+      console.error('Failed to fetch tournament state:', error);
+      setTournamentState(prev => ({
+        ...prev,
+        loading: false
+      }));
+    }
+  };
+
+  if (tournamentState.loading) {
+    return <div className="loading-screen">Loading tournament...</div>;
+  }
+
   return (
     <Router>
       <div className="app">
-        <Navigation />
+        <Navigation tournamentState={tournamentState} />
         
         <div className="main-content">
           <Routes>
             {/* User Routes */}
             <Route path="/" element={<TournamentDashboard />} />
             <Route path="/rankings" element={<LiveRankings />} />
-            <Route path="/bracket-generation" element={<BracketGeneration />} />
+            <Route 
+              path="/bracket" 
+              element={
+                <BracketGeneration 
+                  currentPhase={tournamentState.currentPhase}
+                  onPhaseChange={fetchTournamentState}
+                />
+              } 
+            />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminDashboard />} />
@@ -85,6 +167,8 @@ function App() {
             <Route path="/admin/matches" element={<MatchManagement />} />
             <Route path="/admin/generate-teams" element={<TeamGenerator />} />
             <Route path="/admin/tournament-phases" element={<TournamentPhases />} />
+            <Route path="/admin/semifinals" element={<AdminSemifinals />} />
+            <Route path="/admin/finals" element={<AdminFinals />} />
           </Routes>
         </div>
       </div>

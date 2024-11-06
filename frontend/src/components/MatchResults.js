@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import axios from 'axios';
+import config from '../config';
 
 const MatchResults = () => {
   const [phase, setPhase] = useState('qualifiers');
@@ -23,8 +24,8 @@ const MatchResults = () => {
   const fetchData = async () => {
     try {
       const [teamsRes, playersRes] = await Promise.all([
-        axios.get('http://localhost:5000/teams'),
-        axios.get('http://localhost:5000/players')
+        axios.get(`${config.API_BASE_URL}/teams`),
+        axios.get(`${config.API_BASE_URL}/players`)
       ]);
       setTeams(teamsRes.data);
       setPlayers(playersRes.data);
@@ -56,7 +57,7 @@ const MatchResults = () => {
         kills: playerKills[player.id] || 0
       }));
 
-      await axios.post('http://localhost:5000/matches/qualifier-result', {
+      await axios.post(`${config.API_BASE_URL}/matches/qualifier-result`, {
         team_id: parseInt(selectedTeam),
         player_kills: playerKillsArray,
         game_time: gameTime

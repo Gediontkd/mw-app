@@ -187,12 +187,17 @@ router.get('/semifinals', async (req, res) => {
     }
 });
 
-// Generate semifinals bracket
+// In matches.js route
 router.post('/generate-semifinals', async (req, res) => {
     try {
         await db.promise().beginTransaction();
 
         try {
+            // Clean up any existing semifinals first
+            await db.promise().query(
+                'DELETE FROM matches WHERE match_type = "semifinal"'
+            );
+
             // Get qualified teams
             const [qualifiedTeams] = await db.promise().query(`
                 SELECT *, 
@@ -202,38 +207,24 @@ router.post('/generate-semifinals', async (req, res) => {
                 ORDER BY group_name, total_kills DESC, matches_played ASC
             `);
 
-            // Separate teams by group
             const groupA = qualifiedTeams.filter(team => team.group_name === 'A');
             const groupB = qualifiedTeams.filter(team => team.group_name === 'B');
 
-            // Validate we have enough teams
             if (groupA.length < 2 || groupB.length < 2) {
                 throw new Error('Not enough qualified teams for semifinals');
             }
 
-            // Create semifinal matches
-            const semifinalMatches = [
-                // Match 1: A1 vs B2
-                {
-                    team1_id: groupA[0].id, // A1
-                    team2_id: groupB[1].id, // B2
-                    match_type: 'semifinal'
-                },
-                // Match 2: B1 vs A2
-                {
-                    team1_id: groupB[0].id, // B1
-                    team2_id: groupA[1].id, // A2
-                    match_type: 'semifinal'
-                }
-            ];
-
-            // Insert semifinal matches
-            for (const match of semifinalMatches) {
-                await db.promise().query(`
-                    INSERT INTO matches (team1_id, team2_id, match_type)
-                    VALUES (?, ?, ?)
-                `, [match.team1_id, match.team2_id, match.match_type]);
-            }
+            // Insert semifinal matches with match_order
+            await db.promise().query(`
+                INSERT INTO matches 
+                (team1_id, team2_id, match_type, match_order)
+                VALUES 
+                (?, ?, 'semifinal', 1),
+                (?, ?, 'semifinal', 2)
+            `, [
+                groupA[0].id, groupB[1].id,  // Semifinal 1: A1 vs B2
+                groupB[0].id, groupA[1].id   // Semifinal 2: B1 vs A2
+            ]);
 
             await db.promise().commit();
             res.json({ message: 'Semifinals bracket generated successfully' });
@@ -250,46 +241,43 @@ router.post('/generate-semifinals', async (req, res) => {
     }
 });
 
-// Record semifinal match result
+// Update semifinal result endpoint
 router.post('/semifinal-result', async (req, res) => {
-    const { match_id, game_number, team1_kills, team2_kills } = req.body;
+    const { match_id, game_number, team1_kills, team2_kills, player_kills } = req.body;
     
     try {
         await db.promise().beginTransaction();
+        
+        // Get match details
+        const [match] = await db.promise().query(
+            'SELECT team1_id, team2_id FROM matches WHERE id = ?',
+            [match_id]
+        );
 
-        try {
-            // Get match details
-            const [match] = await db.promise().query(
-                'SELECT team1_id, team2_id FROM matches WHERE id = ?',
-                [match_id]
-            );
+        // Determine winner of this game
+        const winner_team_id = team1_kills > team2_kills ? match[0].team1_id : match[0].team2_id;
 
-            if (!match.length) {
-                throw new Error('Match not found');
-            }
+        // Record game result
+        await db.promise().query(`
+            INSERT INTO semifinal_results 
+            (match_id, game_number, team1_kills, team2_kills, winner_team_id)
+            VALUES (?, ?, ?, ?, ?)
+        `, [match_id, game_number, team1_kills, team2_kills, winner_team_id]);
 
-            // Determine winner
-            const winner_team_id = team1_kills > team2_kills ? 
-                match[0].team1_id : match[0].team2_id;
-
-            // Record game result
+        // Update player kills
+        for (const kill of player_kills) {
             await db.promise().query(`
-                INSERT INTO semifinal_results 
-                (match_id, game_number, team1_kills, team2_kills, winner_team_id)
-                VALUES (?, ?, ?, ?, ?)
-            `, [match_id, game_number, team1_kills, team2_kills, winner_team_id]);
-
-            // Update player kills
-            // You might want to add a separate endpoint for updating individual player kills
-
-            await db.promise().commit();
-            res.json({ message: 'Semifinal game result recorded successfully' });
-        } catch (error) {
-            await db.promise().rollback();
-            throw error;
+                UPDATE players 
+                SET finals_kills = COALESCE(finals_kills, 0) + ?,
+                    matches_played = COALESCE(matches_played, 0) + 1
+                WHERE id = ?
+            `, [kill.kills, kill.player_id]);
         }
+
+        await db.promise().commit();
+        res.json({ message: 'Semifinal game result recorded successfully' });
     } catch (error) {
-        console.error('Error recording semifinal result:', error);
+        await db.promise().rollback();
         res.status(500).json({ error: 'Failed to record semifinal result' });
     }
 });
@@ -402,6 +390,201 @@ router.post('/qualifier-result', async (req, res) => {
             error: 'Failed to record match result',
             details: error.message 
         });
+    }
+});
+
+// Get finals match
+router.get('/finals', async (req, res) => {
+    try {
+        const [rows] = await db.promise().query(`
+            SELECT f.*,
+                   t1.team_name as team1_name,
+                   t2.team_name as team2_name,
+                   COUNT(CASE WHEN fg.winner_team_id = f.team1_id THEN 1 END) as team1_wins,
+                   COUNT(CASE WHEN fg.winner_team_id = f.team2_id THEN 1 END) as team2_wins
+            FROM finals f
+            JOIN teams t1 ON f.team1_id = t1.id
+            JOIN teams t2 ON f.team2_id = t2.id
+            LEFT JOIN finals_games fg ON f.id = fg.finals_id
+            GROUP BY f.id
+        `);
+
+        if (rows.length === 0) {
+            return res.json(null);
+        }
+
+        // Get games for the finals match
+        const [games] = await db.promise().query(`
+            SELECT *
+            FROM finals_games
+            WHERE finals_id = ?
+            ORDER BY game_number ASC
+        `, [rows[0].id]);
+
+        res.json({
+            ...rows[0],
+            games
+        });
+    } catch (error) {
+        console.error('Error fetching finals:', error);
+        res.status(500).json({ error: 'Failed to fetch finals' });
+    }
+});
+
+// Generate finals match
+router.post('/generate-finals', async (req, res) => {
+    const { team1_id, team2_id } = req.body;
+
+    try {
+        await db.promise().beginTransaction();
+
+        // Create finals match
+        const [result] = await db.promise().query(`
+            INSERT INTO finals (team1_id, team2_id)
+            VALUES (?, ?)
+        `, [team1_id, team2_id]);
+
+        await db.promise().commit();
+        res.json({ 
+            message: 'Finals match generated successfully',
+            finals_id: result.insertId
+        });
+    } catch (error) {
+        await db.promise().rollback();
+        console.error('Error generating finals:', error);
+        res.status(500).json({ error: 'Failed to generate finals' });
+    }
+});
+
+// Submit finals game result
+router.post('/finals-result', async (req, res) => {
+    const { 
+        finals_id,
+        game_number,
+        team1_kills,
+        team2_kills,
+        player_kills 
+    } = req.body;
+
+    try {
+        await db.promise().beginTransaction();
+
+        // Get finals match details
+        const [finals] = await db.promise().query(
+            'SELECT team1_id, team2_id FROM finals WHERE id = ?',
+            [finals_id]
+        );
+
+        if (!finals.length) {
+            throw new Error('Finals match not found');
+        }
+
+        // Determine winner
+        const winner_team_id = team1_kills > team2_kills ? 
+            finals[0].team1_id : finals[0].team2_id;
+
+        // Record game result
+        await db.promise().query(`
+            INSERT INTO finals_games 
+            (finals_id, game_number, team1_kills, team2_kills, winner_team_id)
+            VALUES (?, ?, ?, ?, ?)
+        `, [finals_id, game_number, team1_kills, team2_kills, winner_team_id]);
+
+        // Update player kills
+        for (const kill of player_kills) {
+            await db.promise().query(`
+                UPDATE players 
+                SET finals_kills = COALESCE(finals_kills, 0) + ?,
+                    matches_played = COALESCE(matches_played, 0) + 1
+                WHERE id = ?
+            `, [kill.kills, kill.player_id]);
+        }
+
+        // Check if match is complete (best of 5)
+        const [games] = await db.promise().query(`
+            SELECT winner_team_id,
+                   COUNT(CASE WHEN winner_team_id = ? THEN 1 END) as team1_wins,
+                   COUNT(CASE WHEN winner_team_id = ? THEN 1 END) as team2_wins
+            FROM finals_games
+            WHERE finals_id = ?
+            GROUP BY finals_id
+        `, [finals[0].team1_id, finals[0].team2_id, finals_id]);
+
+        if (games[0].team1_wins === 3 || games[0].team2_wins === 3) {
+            await db.promise().query(
+                'UPDATE finals SET status = "completed" WHERE id = ?',
+                [finals_id]
+            );
+        }
+
+        await db.promise().commit();
+        res.json({ message: 'Finals game result recorded successfully' });
+    } catch (error) {
+        await db.promise().rollback();
+        console.error('Error recording finals result:', error);
+        res.status(500).json({ error: 'Failed to record finals result' });
+    }
+});
+
+router.get('/tournament-stats', async (req, res) => {
+    try {
+        // Get top 3 qualifier kills
+        const [qualifierTop3] = await db.promise().query(`
+            SELECT 
+                p.name,
+                p.qualifier_kills,
+                t.team_name
+            FROM players p
+            LEFT JOIN teams t ON p.team_id = t.id
+            WHERE p.qualifier_kills > 0
+            ORDER BY p.qualifier_kills DESC
+            LIMIT 3
+        `);
+
+        // Get top 3 finals/semifinals kills combined
+        const [eliminationTop3] = await db.promise().query(`
+            SELECT 
+                p.name,
+                (COALESCE(p.finals_kills, 0)) as elimination_kills,
+                t.team_name
+            FROM players p
+            LEFT JOIN teams t ON p.team_id = t.id
+            WHERE (p.finals_kills > 0)
+            ORDER BY elimination_kills DESC
+            LIMIT 3
+        `);
+
+        // Get tournament winner
+        const [winner] = await db.promise().query(`
+            SELECT 
+                t.team_name,
+                t.total_kills,
+                GROUP_CONCAT(p.name) as player_names
+            FROM finals f
+            JOIN teams t ON (
+                CASE 
+                    WHEN (
+                        SELECT COUNT(*) 
+                        FROM finals_games fg 
+                        WHERE fg.finals_id = f.id AND fg.winner_team_id = f.team1_id
+                    ) >= 3 
+                    THEN f.team1_id 
+                    ELSE f.team2_id 
+                END
+            ) = t.id
+            JOIN players p ON p.team_id = t.id
+            WHERE f.status = 'completed'
+            GROUP BY t.id
+        `);
+
+        res.json({
+            qualifierTop3,
+            eliminationTop3,
+            winner: winner[0] || null
+        });
+    } catch (error) {
+        console.error('Error fetching tournament stats:', error);
+        res.status(500).json({ error: 'Failed to fetch tournament stats' });
     }
 });
 

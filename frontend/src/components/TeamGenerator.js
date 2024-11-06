@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from '../config';
 
 const TeamGenerator = () => {
   const [players, setPlayers] = useState([]);
@@ -15,8 +16,8 @@ const TeamGenerator = () => {
   const fetchData = async () => {
     try {
       const [playersRes, teamsRes] = await Promise.all([
-        axios.get('http://localhost:5000/players'),
-        axios.get('http://localhost:5000/teams')
+        axios.get(`${config.API_BASE_URL}/players`),
+        axios.get(`${config.API_BASE_URL}/teams`)
       ]);
       setPlayers(playersRes.data);
       setTeams(teamsRes.data);
@@ -54,7 +55,7 @@ const TeamGenerator = () => {
         const teamName = `Team ${i + 1}`;
         
         // Create team
-        const teamResponse = await axios.post('http://localhost:5000/teams', {
+        const teamResponse = await axios.post(`${config.API_BASE_URL}/teams`, {
           team_name: teamName,
           group_name: groupName,
           player1_id: player1.id,
@@ -63,11 +64,11 @@ const TeamGenerator = () => {
 
         // Update players with team_id
         await Promise.all([
-          axios.put(`http://localhost:5000/players/${player1.id}`, {
+          axios.put(`${config.API_BASE_URL}/players/${player1.id}`, {
             ...player1,
             team_id: teamResponse.data.id
           }),
-          axios.put(`http://localhost:5000/players/${player2.id}`, {
+          axios.put(`${config.API_BASE_URL}/players/${player2.id}`, {
             ...player2,
             team_id: teamResponse.data.id
           })
@@ -95,7 +96,7 @@ const TeamGenerator = () => {
         players
           .filter(player => player.team_id)
           .map(player =>
-            axios.put(`http://localhost:5000/players/${player.id}`, {
+            axios.put(`${config.API_BASE_URL}/players/${player.id}`, {
               ...player,
               team_id: null
             })
@@ -105,7 +106,7 @@ const TeamGenerator = () => {
       // Then delete all teams
       await Promise.all(
         teams.map(team =>
-          axios.delete(`http://localhost:5000/teams/${team.id}`)
+          axios.delete(`${config.API_BASE_URL}/teams/${team.id}`)
         )
       );
 

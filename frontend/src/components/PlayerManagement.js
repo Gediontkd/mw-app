@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from '../config';
 
 const PlayerManagement = () => {
   const [players, setPlayers] = useState([]);
@@ -18,8 +19,8 @@ const PlayerManagement = () => {
   const fetchData = async () => {
     try {
       const [playersRes, teamsRes] = await Promise.all([
-        axios.get('http://localhost:5000/players'),
-        axios.get('http://localhost:5000/teams')
+        axios.get(`${config.API_BASE_URL}/players`),
+        axios.get(`${config.API_BASE_URL}/teams`)
       ]);
       setPlayers(playersRes.data);
       setTeams(teamsRes.data);
@@ -50,7 +51,7 @@ const PlayerManagement = () => {
     
     try {
       if (editMode) {
-        await axios.put(`http://localhost:5000/players/${currentPlayerId}`, {
+        await axios.put(`${config.API_BASE_URL}/players/${currentPlayerId}`, {
           ...newPlayer,
           team_id: players.find(p => p.id === currentPlayerId)?.team_id || null
         });
@@ -58,7 +59,7 @@ const PlayerManagement = () => {
         setEditMode(false);
         setCurrentPlayerId(null);
       } else {
-        await axios.post('http://localhost:5000/players', newPlayer);
+        await axios.post(`${config.API_BASE_URL}/players`, newPlayer);
         setMessage('Player added successfully');
       }
       setNewPlayer({ name: '', kills: 0 });
@@ -79,7 +80,7 @@ const PlayerManagement = () => {
 
   const handleDelete = async (playerId) => {
     try {
-      await axios.delete(`http://localhost:5000/players/${playerId}`);
+      await axios.delete(`${config.API_BASE_URL}/players/${playerId}`);
       fetchData();
       setMessage('Player deleted successfully');
       

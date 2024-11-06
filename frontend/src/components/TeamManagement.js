@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from '../config';
 
 const TeamManagement = () => {
   const [teams, setTeams] = useState([]);
@@ -14,7 +15,7 @@ const TeamManagement = () => {
 
   const fetchTeams = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/teams');
+      const response = await axios.get(`${config.API_BASE_URL}/teams`);
       setTeams(response.data);
     } catch (error) {
       console.error('Error fetching teams:', error);
@@ -30,9 +31,9 @@ const TeamManagement = () => {
     e.preventDefault();
     try {
       if (editMode) {
-        await axios.put(`http://localhost:5000/teams/${currentTeamId}`, newTeam);
+        await axios.put(`${config.API_BASE_URL}/teams/${currentTeamId}`, newTeam);
       } else {
-        await axios.post('http://localhost:5000/teams', newTeam);
+        await axios.post(`${config.API_BASE_URL}/teams`, newTeam);
       }
       setNewTeam({ team_name: '', group_name: 'A' });
       setEditMode(false);
@@ -52,7 +53,7 @@ const TeamManagement = () => {
 
   const handleDelete = async (teamId) => {
     try {
-      await axios.delete(`http://localhost:5000/teams/${teamId}`);
+      await axios.delete(`${config.API_BASE_URL}/teams/${teamId}`);
       fetchTeams();
     } catch (error) {
       console.error('Error deleting team:', error);

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './MatchManagement.css';
+import config from '../config';
 
 const MatchManagement = () => {
   const [matches, setMatches] = useState([]);
@@ -14,12 +15,8 @@ const MatchManagement = () => {
   const [newMatch, setNewMatch] = useState({
     team1_id: '',
     team2_id: '',
-    team1_player1_kills: 0,
-    team1_player2_kills: 0,
-    team2_player1_kills: 0,
-    team2_player2_kills: 0,
-    game_time: '',
-    match_type: 'qualifier'
+    players: {}, // Store all player kills in a single object
+    game_time: new Date().toLocaleTimeString()
   });
 
   useEffect(() => {
@@ -29,9 +26,9 @@ const MatchManagement = () => {
   const fetchData = async () => {
     try {
       const [matchesRes, teamsRes, playersRes] = await Promise.all([
-        axios.get('http://localhost:5000/matches'),
-        axios.get('http://localhost:5000/teams'),
-        axios.get('http://localhost:5000/players')
+        axios.get(`${config.API_BASE_URL}/matches`),
+        axios.get(`${config.API_BASE_URL}/teams`),
+        axios.get(`${config.API_BASE_URL}/players`)
       ]);
       setMatches(matchesRes.data);
       setTeams(teamsRes.data);
@@ -55,12 +52,42 @@ const MatchManagement = () => {
     if (team1?.group_name !== team2?.group_name) {
       return 'Teams must be from the same group for qualifier matches';
     }
+
+    // Validate that all players have kills entered
+    const team1Players = getTeamPlayers(newMatch.team1_id);
+    const team2Players = getTeamPlayers(newMatch.team2_id);
+    const allPlayers = [...team1Players, ...team2Players];
+    
+    const missingKills = allPlayers.some(player => 
+      !newMatch.players[player.id] && newMatch.players[player.id] !== 0
+    );
+    
+    if (missingKills) {
+      return 'Please enter kills for all players';
+    }
     
     return null;
   };
 
   const getTeamPlayers = (teamId) => {
     return players.filter(player => player.team_id === parseInt(teamId));
+  };
+
+  const calculateTeamKills = (teamId) => {
+    const teamPlayers = getTeamPlayers(teamId);
+    return teamPlayers.reduce((total, player) => {
+      return total + (parseInt(newMatch.players[player.id]) || 0);
+    }, 0);
+  };
+
+  const handlePlayerKillChange = (playerId, kills) => {
+    setNewMatch(prev => ({
+      ...prev,
+      players: {
+        ...prev.players,
+        [playerId]: parseInt(kills) || 0
+      }
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -77,55 +104,35 @@ const MatchManagement = () => {
     }
 
     try {
-      // Get players for both teams
-      const team1Players = getTeamPlayers(newMatch.team1_id);
-      const team2Players = getTeamPlayers(newMatch.team2_id);
+      // Calculate team kills
+      const team1_kills = calculateTeamKills(newMatch.team1_id);
+      const team2_kills = calculateTeamKills(newMatch.team2_id);
 
-      // Calculate total kills for each team
-      const team1_kills = parseInt(newMatch.team1_player1_kills) + parseInt(newMatch.team1_player2_kills);
-      const team2_kills = parseInt(newMatch.team2_player1_kills) + parseInt(newMatch.team2_player2_kills);
+      // Format player kills for API
+      const player_kills = Object.entries(newMatch.players).map(([playerId, kills]) => ({
+        player_id: parseInt(playerId),
+        kills: parseInt(kills)
+      }));
 
-      // Prepare player kills data
-      const player_kills = [
-        {
-          player_id: team1Players[0]?.id,
-          kills: parseInt(newMatch.team1_player1_kills)
-        },
-        {
-          player_id: team1Players[1]?.id,
-          kills: parseInt(newMatch.team1_player2_kills)
-        },
-        {
-          player_id: team2Players[0]?.id,
-          kills: parseInt(newMatch.team2_player1_kills)
-        },
-        {
-          player_id: team2Players[1]?.id,
-          kills: parseInt(newMatch.team2_player2_kills)
-        }
-      ].filter(p => p.player_id && p.kills >= 0);
-
-      // Send match result
-      await axios.post('http://localhost:5000/matches/qualifier-result', {
+      // Submit match result
+      await axios.post(`${config.API_BASE_URL}/matches/qualifier-result`, {
         team1_id: parseInt(newMatch.team1_id),
         team2_id: parseInt(newMatch.team2_id),
         team1_kills,
         team2_kills,
         player_kills,
-        game_time: newMatch.game_time || new Date().toLocaleTimeString()
+        game_time: newMatch.game_time
       });
 
       setSuccess('Match added successfully');
+      // Reset form
       setNewMatch({
         team1_id: '',
         team2_id: '',
-        team1_player1_kills: 0,
-        team1_player2_kills: 0,
-        team2_player1_kills: 0,
-        team2_player2_kills: 0,
-        game_time: '',
-        match_type: 'qualifier'
+        players: {},
+        game_time: new Date().toLocaleTimeString()
       });
+      setSelectedGroup('');
       fetchData();
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to add match');
@@ -134,11 +141,18 @@ const MatchManagement = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleTeamSelect = (teamNumber, teamId) => {
     setNewMatch(prev => ({
       ...prev,
-      [name]: value
+      [`team${teamNumber}_id`]: teamId,
+      // Clear existing player kills for this team
+      players: {
+        ...prev.players,
+        ...getTeamPlayers(teamId).reduce((acc, player) => {
+          acc[player.id] = 0;
+          return acc;
+        }, {})
+      }
     }));
   };
 
@@ -158,7 +172,8 @@ const MatchManagement = () => {
               setNewMatch(prev => ({
                 ...prev,
                 team1_id: '',
-                team2_id: ''
+                team2_id: '',
+                players: {}
               }));
             }}
           >
@@ -172,9 +187,8 @@ const MatchManagement = () => {
         <div className="team-section">
           <label>Team 1</label>
           <select
-            name="team1_id"
             value={newMatch.team1_id}
-            onChange={handleChange}
+            onChange={(e) => handleTeamSelect(1, e.target.value)}
             required
           >
             <option value="">Select Team 1</option>
@@ -190,19 +204,21 @@ const MatchManagement = () => {
 
           {newMatch.team1_id && (
             <div className="player-kills">
-              {getTeamPlayers(newMatch.team1_id).map((player, idx) => (
+              {getTeamPlayers(newMatch.team1_id).map(player => (
                 <div key={player.id} className="player-input">
                   <label>{player.name} Kills:</label>
                   <input
                     type="number"
-                    name={`team1_player${idx + 1}_kills`}
-                    value={newMatch[`team1_player${idx + 1}_kills`]}
-                    onChange={handleChange}
+                    value={newMatch.players[player.id] || 0}
+                    onChange={(e) => handlePlayerKillChange(player.id, e.target.value)}
                     min="0"
                     required
                   />
                 </div>
               ))}
+              <div className="team-total">
+                Total Team 1 Kills: {calculateTeamKills(newMatch.team1_id)}
+              </div>
             </div>
           )}
         </div>
@@ -211,9 +227,8 @@ const MatchManagement = () => {
         <div className="team-section">
           <label>Team 2</label>
           <select
-            name="team2_id"
             value={newMatch.team2_id}
-            onChange={handleChange}
+            onChange={(e) => handleTeamSelect(2, e.target.value)}
             required
           >
             <option value="">Select Team 2</option>
@@ -229,19 +244,21 @@ const MatchManagement = () => {
 
           {newMatch.team2_id && (
             <div className="player-kills">
-              {getTeamPlayers(newMatch.team2_id).map((player, idx) => (
+              {getTeamPlayers(newMatch.team2_id).map(player => (
                 <div key={player.id} className="player-input">
                   <label>{player.name} Kills:</label>
                   <input
                     type="number"
-                    name={`team2_player${idx + 1}_kills`}
-                    value={newMatch[`team2_player${idx + 1}_kills`]}
-                    onChange={handleChange}
+                    value={newMatch.players[player.id] || 0}
+                    onChange={(e) => handlePlayerKillChange(player.id, e.target.value)}
                     min="0"
                     required
                   />
                 </div>
               ))}
+              <div className="team-total">
+                Total Team 2 Kills: {calculateTeamKills(newMatch.team2_id)}
+              </div>
             </div>
           )}
         </div>

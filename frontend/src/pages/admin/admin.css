@@ -342,3 +342,228 @@
     border-radius: 4px;
     margin: 10px 0;
   }
+
+  .nav-link.gold {
+    background: linear-gradient(to right, #b45309, #d97706);
+    transition: background 0.3s;
+  }
+  
+  .nav-link.gold:hover {
+    background: linear-gradient(to right, #92400e, #b45309);
+  }
+
+  .reset-tournament-section {
+    margin: 1rem 0;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .reset-tournament-button {
+    background-color: #dc2626;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .reset-tournament-button:hover {
+    background-color: #b91c1c;
+  }
+  
+  .reset-tournament-button:disabled {
+    background-color: #f87171;
+    cursor: not-allowed;
+  }
+
+
+    /* Add to your existing admin.css */
+    .nav-link.purple {
+      background: #9333ea;
+    }
+    
+    .nav-link.purple:hover {
+      background: #7e22ce;
+    }
+
+    .semifinals-display {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .semifinals-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .semifinal-card {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .semifinal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      font-weight: 600;
+    }
+
+    .match-status {
+      font-size: 0.875rem;
+      color: #64748b;
+    }
+
+    .matchup {
+      display: grid;
+      grid-template-columns: 2fr 1fr 2fr;
+      gap: 1rem;
+      align-items: center;
+      margin: 1rem 0;
+      text-align: center;
+    }
+
+    .team-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .team-name {
+      font-weight: 500;
+      color: #1e293b;
+    }
+
+    .group-tag {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    .vs {
+      font-weight: 600;
+      color: #94a3b8;
+    }
+
+    .game-results {
+      background: white;
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .game-result {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .game-result:last-child {
+      border-bottom: none;
+    }
+
+    .game-number {
+      font-weight: 500;
+      color: #475569;
+    }
+
+    .score {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .winner {
+      font-size: 0.875rem;
+      color: #059669;
+    }
+
+    @media (max-width: 768px) {
+      .semifinals-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .matchup {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+
+      .vs {
+        margin: 0.5rem 0;
+      }
+    }
+    .generate-section {
+      margin: 20px 0;
+      padding: 20px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .info-text {
+      margin-bottom: 15px;
+      color: #a0aec0;
+    }
+    
+    .generate-button {
+      padding: 12px 24px;
+      background: #4299e1;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .generate-button:hover:not(:disabled) {
+      background: #3182ce;
+    }
+    
+    .generate-button:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+    }
+
+    .generate-section {
+      margin: 20px 0;
+      padding: 20px;
+      background: var(--bg-card);
+      border-radius: 8px;
+      text-align: center;
+    }
+    
+    .info-text {
+      margin-bottom: 15px;
+      color: #a0aec0;
+    }
+    
+    .generate-button {
+      padding: 12px 24px;
+      background: #4299e1;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .generate-button:hover:not(:disabled) {
+      background: #3182ce;
+    }
+    
+    .generate-button:disabled {
+      background: #a0aec0;
+      cursor: not-allowed;
+    }

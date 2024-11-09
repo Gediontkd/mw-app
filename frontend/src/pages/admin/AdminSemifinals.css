@@ -33,6 +33,7 @@
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    color: #000;
   }
   
   .matches-list {
@@ -197,6 +198,7 @@
       border-bottom: 1px solid #e2e8f0;
       padding-right: 0;
       padding-bottom: 20px;
+      color: #000;
     }
   
     .teams-input {

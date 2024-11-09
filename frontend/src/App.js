@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import config from './config';
+import LogoImage from './assets/images/no_background_logo_titled2.png'
+import Footer from './components/Footer';
 
 // Import components
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -34,7 +36,13 @@ const Navigation = ({ tournamentState }) => {
           {isAdmin ? (
             <Link to="/admin" className="nav-brand">Admin Dashboard</Link>
           ) : (
-            <Link to="/" className="nav-brand">Tournament Dashboard</Link>
+            <Link to="/" className="nav-brand">
+              <img 
+                src={LogoImage}
+                alt="Tournament Dashboard"
+                className="nav-logo"
+              />
+            </Link>
           )}
         </div>
 
@@ -45,20 +53,20 @@ const Navigation = ({ tournamentState }) => {
                 to="/" 
                 className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
               >
-                Overview
+                Tournaments
               </Link>
-              <Link 
+              {/* <Link 
                 to="/rankings" 
                 className={`nav-link ${location.pathname === '/rankings' ? 'active' : ''}`}
               >
                 Live Rankings
-              </Link>
-              <Link 
+              </Link> */}
+              {/* <Link 
                 to="/bracket" 
                 className={`nav-link ${location.pathname === '/bracket' ? 'active' : ''}`}
               >
-                Final
-              </Link>
+                Phase 2
+              </Link> */}
               {/* {showBracket && (
                 <Link 
                   to="/bracket" 
@@ -170,6 +178,7 @@ function App() {
             <Route path="/admin/semifinals" element={<AdminSemifinals />} />
             <Route path="/admin/finals" element={<AdminFinals />} />
           </Routes>
+          <Footer />
         </div>
       </div>
     </Router>

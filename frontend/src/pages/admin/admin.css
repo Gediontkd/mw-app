@@ -567,3 +567,38 @@
       background: #a0aec0;
       cursor: not-allowed;
     }
+
+    /* Admin pages white background */
+.admin-dashboard,
+.admin-semifinals,
+.admin-finals {
+  background-color: white;
+  min-height: 100vh;
+}
+
+.admin-dashboard .main-content,
+.admin-semifinals .main-content,
+.admin-finals .main-content {
+  background-color: white;
+}
+
+/* In your App.css, modify this */
+.app {
+  min-height: 100vh;
+}
+
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Only apply dark background to tournament pages */
+.tournament-container {
+  background-color: #1a1a24;
+}
+
+/* Keep navigation dark */
+.main-nav {
+  background-color: #252533;
+}

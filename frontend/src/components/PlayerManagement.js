@@ -228,17 +228,32 @@ const PlayerManagement = () => {
   );
 };
 
-// Styles for table
+// // Styles for table
+// const tableHeaderStyle = {
+//   backgroundColor: '#f4f4f4',
+//   padding: '12px',
+//   textAlign: 'left',
+//   borderBottom: '2px solid #ddd'
+// };
+
+// const tableCellStyle = {
+//   padding: '12px',
+//   borderBottom: '1px solid #ddd'
+// };
+
+// Update table styles
 const tableHeaderStyle = {
   backgroundColor: '#f4f4f4',
   padding: '12px',
   textAlign: 'left',
-  borderBottom: '2px solid #ddd'
+  borderBottom: '2px solid #ddd',
+  color: '#000'  // Added explicit color
 };
 
 const tableCellStyle = {
   padding: '12px',
-  borderBottom: '1px solid #ddd'
+  borderBottom: '1px solid #ddd',
+  color: '#000'  // Added explicit color
 };
 
 export default PlayerManagement;

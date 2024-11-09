@@ -69,13 +69,14 @@
   .rankings-table {
     width: 100%;
     border-collapse: collapse;
+    color: #fff;
   }
   
   .rankings-table th {
     text-align: left;
     padding: 12px 8px;
     border-bottom: 2px solid #eee;
-    color: #666;
+    color: #ffffff;
     font-weight: 500;
   }
   
@@ -112,7 +113,7 @@
   
   .last-update {
     text-align: center;
-    color: #666;
+    color: #ffffff;
     font-size: 14px;
     margin-top: 20px;
   }

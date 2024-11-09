@@ -14,6 +14,7 @@
   
   .input-group {
     margin-bottom: 15px;
+    color: #000;
   }
   
   .team-section {
@@ -22,6 +23,7 @@
     border: 1px solid #e0e0e0;
     border-radius: 4px;
     background-color: white;
+    color : #000;
   }
   
   label {
@@ -86,6 +88,7 @@
   
   .match-teams {
     margin-bottom: 5px;
+    color: #000;
   }
   
   .match-score {

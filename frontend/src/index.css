@@ -5,12 +5,20 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #1a1a24 !important; /* Dark background */
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
 * {
   font-family: 'DIMIS', sans-serif;  /* sans-serif as fallback */
+}
+
+/* Force dark background on html and body */
+html, body {
+  background-color: #1a1a24;
+  min-height: 100%;
 }

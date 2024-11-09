@@ -110,7 +110,7 @@ const LiveRankings = () => {
     return (
       <div className="ranking-card">
         <div className="ranking-title">
-          Group {groupName} Rankings
+          GIRONE {groupName}
           <span className={`qualification-mark ${qualifiedTeams >= 2 ? 'complete' : ''}`}>
             {qualifiedTeams}/2 Qualified
           </span>

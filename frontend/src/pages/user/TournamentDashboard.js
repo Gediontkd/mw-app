@@ -3,6 +3,9 @@ import axios from 'axios';
 import './tournament.css';
 import Image2 from '../../assets/images/no_background_logo_titled.png';
 import config from '../../config';
+import { fetchTeamRankings } from '../../services/matchService';
+import { fetchTournamentPhase, checkQualification } from '../../services/tournamentService';
+import { Link } from 'react-router-dom';
 
 // Import player images
 import player1 from '../../assets/players/bblade_card.png';
@@ -50,11 +53,142 @@ const FIXED_PLAYER_SLOTS = [
   { id: 20, image: player20, position: "Player Slot 20" }
 ];
 
+const PlayerModal = ({ isOpen, onClose, players }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2 className="modal-title">Players List</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="players-grid">
+            {players.map((player) => (
+              <div key={player.id} className="modal-player-card">
+                <div className="modal-player-info">
+                  <div className="modal-player-name">{player.name}</div>
+                  <div className={`modal-player-status ${player.team_id ? 'assigned' : 'unassigned'}`}>
+                    {player.team_id ? 'In Team' : 'Not Assigned'}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PlayerCarousel = ({ players, expandView, FIXED_PLAYER_SLOTS }) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slidesPerView = 4;
+  const totalSlides = Math.ceil(FIXED_PLAYER_SLOTS.length / slidesPerView);
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+  };
+
+  const goToSlide = (slideIndex) => {
+    setCurrentSlide(slideIndex);
+  };
+
+  return (
+    <div className="player-carousel">
+      <div className="carousel-container">
+        <button 
+          className="carousel-arrow carousel-arrow-left" 
+          onClick={prevSlide}
+          aria-label="Previous slide"
+        >
+          ‹
+        </button>
+
+        <div className="carousel-track" 
+          style={{ 
+            transform: `translateX(-${currentSlide * 100}%)`,
+          }}
+        >
+          {expandView ? (
+            <div className="player-grid">
+              {players.map((player) => (
+                <div key={player.id} className="player-card">
+                  <div className="player-info">
+                    <div className="player-name">{player.name}</div>
+                    <div className={`player-status ${player.team_id ? 'assigned' : 'unassigned'}`}>
+                      {player.team_id ? 'In Team' : 'Not Assigned'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            [...Array(totalSlides)].map((_, slideIndex) => (
+              <div key={slideIndex} className="carousel-slide">
+                {FIXED_PLAYER_SLOTS
+                  .slice(slideIndex * slidesPerView, (slideIndex + 1) * slidesPerView)
+                  .map((slot) => (
+                    <div key={slot.id} className="carousel-card">
+                      <div className="card-content">
+                        <div className="card-image-container">
+                          <img 
+                            src={slot.image}
+                            alt={slot.position}
+                            className="card-image"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ))
+          )}
+        </div>
+
+        <button 
+          className="carousel-arrow carousel-arrow-right" 
+          onClick={nextSlide}
+          aria-label="Next slide"
+        >
+          ›
+        </button>
+      </div>
+
+      {/* Navigation dots */}
+      <div className="carousel-dots">
+        {[...Array(totalSlides)].map((_, index) => (
+          <button
+            key={index}
+            className={`carousel-dot ${currentSlide === index ? 'active' : ''}`}
+            onClick={() => goToSlide(index)}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const TournamentDashboard = () => {
   const [players, setPlayers] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [rankings, setRankings] = useState({
+    groupA: [],
+    groupB: []
+  });
+  const [playerRankings, setPlayerRankings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [expandView, setExpandView] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [currentPhase, setCurrentPhase] = useState('qualifiers');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const tournamentInfo = {
     name: "Most Wanted Tournament",
@@ -72,30 +206,160 @@ const TournamentDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [playersRes, teamsRes] = await Promise.all([
-        axios.get(`${config.API_BASE_URL}/players`),
+      // Fetch current tournament phase and rankings
+      const [phaseData, groupAData, groupBData, playersData, teamsRes] = await Promise.all([
+        fetchTournamentPhase(),
+        fetchTeamRankings('A'),
+        fetchTeamRankings('B'),
+        fetch(`${config.API_BASE_URL}/players`).then(res => res.json()),
         axios.get(`${config.API_BASE_URL}/teams`)
       ]);
-      setPlayers(playersRes.data);
+
+      setCurrentPhase(phaseData.phase_name);
       setTeams(teamsRes.data);
+      setPlayers(playersData);
+
+      // Process and update rankings
+      const processedGroupA = processTeamRankings(groupAData);
+      const processedGroupB = processTeamRankings(groupBData);
+
+      setRankings({
+        groupA: processedGroupA,
+        groupB: processedGroupB
+      });
+
+      setPlayerRankings(processPlayerRankings(playersData));
+      setLastUpdate(new Date());
       setLoading(false);
-    } catch (error) {
-      console.error('Failed to fetch data:', error);
+
+      // Check qualification for both groups if in qualifier phase
+      if (phaseData.phase_name === 'qualifiers') {
+        await Promise.all([
+          checkQualification('A'),
+          checkQualification('B')
+        ]);
+      }
+    } catch (err) {
+      setError('Failed to fetch data');
+      console.error('Error fetching data:', err);
+      setLoading(false);
     }
+  };
+
+  const processTeamRankings = (teams) => {
+    return teams
+      .map(team => ({
+        ...team,
+        isQualified: team.is_qualified || team.total_kills >= 100,
+        progress: Math.min((team.total_kills / 100) * 100, 100),
+        gameTime: team.game_time || '-'
+      }))
+      .sort((a, b) => {
+        // First priority: Qualification status
+        if (a.isQualified !== b.isQualified) {
+          return b.isQualified - a.isQualified;
+        }
+
+        // For qualified teams: Sort by matches played
+        if (a.isQualified && b.isQualified) {
+          if (a.matches_played !== b.matches_played) {
+            return a.matches_played - b.matches_played;
+          }
+          // If matches are equal, sort by total kills
+          return b.total_kills - a.total_kills;
+        }
+
+        // For non-qualified teams: Sort by total kills
+        return b.total_kills - a.total_kills;
+      });
+  };
+
+  const processPlayerRankings = (players) => {
+    return players
+      .filter(player => player.kills > 0) // Only show players with kills
+      .map(player => ({
+        ...player,
+        // Use appropriate kills based on phase
+        totalKills: currentPhase === 'qualifiers' ? 
+          player.qualifier_kills || 0 : 
+          player.finals_kills || 0,
+        killsPerMatch: player.matches_played ? 
+          ((player.qualifier_kills + player.finals_kills) / player.matches_played).toFixed(1) : '0'
+      }))
+      .sort((a, b) => b.totalKills - a.totalKills);
+  };
+
+  const TeamRankingsTable = ({ rankings, groupName }) => {
+    const qualifiedTeams = rankings.filter(team => team.isQualified).length;
+
+    return (
+      <div className="ranking-card">
+        <div className="ranking-title">
+          GIRONE {groupName}
+          <span className={`qualification-mark ${qualifiedTeams >= 2 ? 'complete' : ''}`}>
+            {qualifiedTeams}/2 Qualified
+          </span>
+        </div>
+        <table className="rankings-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Team</th>
+              <th>Kills</th>
+              <th>Matches</th>
+              <th>Progress</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rankings.map((team, index) => (
+              <tr 
+                key={team.id} 
+                className={team.isQualified ? 'qualified-row' : ''}
+              >
+                <td>{index + 1}</td>
+                <td>{team.team_name}</td>
+                <td>{team.total_kills}</td>
+                <td>{team.matches_played}</td>
+                <td>
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill"
+                      style={{
+                        width: `${team.progress}%`,
+                        backgroundColor: team.isQualified ? '#4CAF50' : '#2196F3'
+                      }}
+                      title={`${team.progress}% to qualification`}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
   };
 
   if (loading) {
     return <div className="loading-spinner">Loading...</div>;
   }
 
+  if (error) {
+    return <div className="error-container">{error}</div>;
+  }
+
   return (
     <div className="tournament-container">
-      <div className="banner-image">
-        <img src={Image2} alt="Event Banner" />
+      {/* Banner Image */}
+      <div className="banner-container">
+        <img 
+          src={Image2}
+          alt="Tournament Banner"
+          className="banner-image"
+        />
       </div>
-
       {/* Tournament Header */}
-      <div className="tournament-header">
+      {/* <div className="tournament-header">
         <h1 className="tournament-title">{tournamentInfo.name}</h1>
         <div className="tournament-info-grid">
           <div className="info-card">
@@ -119,7 +383,7 @@ const TournamentDashboard = () => {
             <div className="info-value">{tournamentInfo.playersPerTeam}</div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Player Section */}
       <div className="section">
@@ -127,90 +391,56 @@ const TournamentDashboard = () => {
           <h2 className="section-title">Players</h2>
           <button 
             className="expand-button"
-            onClick={() => setExpandView(!expandView)}
+            onClick={() => setIsModalOpen(true)}
           >
-            {expandView ? 'Show Images' : 'Players Name'}
+            Teams
           </button>
         </div>
-        <div className="player-grid">
-          {expandView ? (
-            // Show enrolled players' names when in expand view
-            players.map((player) => (
-              <div key={player.id} className="player-card">
-                <div className="player-info">
-                  <div className="player-name">{player.name}</div>
-                  <div className={`player-status ${player.team_id ? 'assigned' : 'unassigned'}`}>
-                    {player.team_id ? 'In Team' : 'Not Assigned'}
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            // Show all fixed image slots regardless of enrolled players
-            FIXED_PLAYER_SLOTS.map((slot) => (
-              <div key={slot.id} className="player-card">
-                <div className="player-image-wrapper">
-                  <img 
-                    src={slot.image}
-                    alt={slot.position}
-                    className="player-image"
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
-                      objectFit: 'cover',
-                      borderRadius: '8px'
-                    }}
-                  />
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        <PlayerCarousel 
+          players={players}
+          expandView={false}
+          FIXED_PLAYER_SLOTS={FIXED_PLAYER_SLOTS}
+        />
       </div>
 
-      {/* Teams Display */}
-      <div className="teams-section">
-        <div className="stage stage-1">
-          <h3 className="section-title">Group A</h3>
-          <div className="team-grid">
-            {teams
-              .filter(team => team.group_name === 'A')
-              .map(team => (
-                <div key={team.id} className="team-card">
-                  <div className="team-name">{team.team_name}</div>
-                  <div className="team-players">
-                    <div className="player">
-                      {players.find(p => p.id === team.player1_id)?.name}
-                    </div>
-                    <div className="player">
-                      {players.find(p => p.id === team.player2_id)?.name}
-                    </div>
-                  </div>
-                </div>
-              ))}
-          </div>
+      {/* Player Modal */}
+      <PlayerModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        players={players}
+      />
+
+      {/* Rankings Section */}
+      <div className="rankings-section">
+        <div className="rankings-header">
+          <h2 className="section-title">Phase 1</h2>
+          <h2 className="section-title"><Link to="/bracket" className="phase-button">
+      Phase 2
+    </Link></h2>
+          {/* <button 
+            onClick={fetchData} 
+            className="refresh-button"
+            disabled={loading}
+          >
+            Refresh Rankings
+          </button> */}
+        </div>
+        
+        <div className="rankings-grid">
+          <TeamRankingsTable rankings={rankings.groupA} groupName="A" />
+          <TeamRankingsTable rankings={rankings.groupB} groupName="B" />
         </div>
 
-        <div className="stage stage-2">
-          <h3 className="section-title">Group B</h3>
-          <div className="team-grid">
-            {teams
-              .filter(team => team.group_name === 'B')
-              .map(team => (
-                <div key={team.id} className="team-card">
-                  <div className="team-name">{team.team_name}</div>
-                  <div className="team-players">
-                    <div className="player">
-                      {players.find(p => p.id === team.player1_id)?.name}
-                    </div>
-                    <div className="player">
-                      {players.find(p => p.id === team.player2_id)?.name}
-                    </div>
-                  </div>
-                </div>
-              ))}
+        {lastUpdate && (
+          <div className="last-update">
+            Last updated: {lastUpdate.toLocaleTimeString()}
           </div>
-        </div>
+        )}
+      </div>
+    <br/><br/><br/><br/>
+      {/* Banner Image */}
+      <div className="banner-container">
+        <h1 className='sponsor-banner'>CHI SIAMO + SPONSOR</h1>
       </div>
     </div>
   );

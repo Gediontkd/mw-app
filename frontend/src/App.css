@@ -1,14 +1,16 @@
 .app {
   min-height: 100vh;
-  background-color: #f5f7f9;
+  background-color: #1a1a24;
+  color: white;
 }
 
 .main-nav {
-  background-color: #333;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  background-color: #252533;
+  box-shadow: 0 2px 4px rgba(155, 77, 255, 0.2);
   position: sticky;
   top: 0;
   z-index: 1000;
+  border-bottom: 2px solid #9b4dff;
 }
 
 .nav-content {
@@ -27,14 +29,14 @@
 }
 
 .nav-brand {
-  color: white;
+  color: #b388ff;
   text-decoration: none;
   font-size: 18px;
   font-weight: 500;
 }
 
 .nav-link {
-  color: #ccc;
+  color: #b388ff;
   text-decoration: none;
   padding: 8px 16px;
   border-radius: 4px;
@@ -43,26 +45,27 @@
 
 .nav-link:hover {
   color: white;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(179, 136, 255, 0.1);
 }
 
 .nav-link.active {
   color: white;
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(179, 136, 255, 0.2);
 }
 
 .switch-view {
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(179, 136, 255, 0.4);
 }
 
 .switch-view:hover {
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(179, 136, 255, 0.8);
 }
 
 .main-content {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
+  background-color: #1a1a24;
 }
 
 /* Loading state */
@@ -71,25 +74,7 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .nav-content {
-    flex-direction: column;
-    gap: 15px;
-    padding: 15px 20px;
-  }
-
-  .nav-group {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .nav-link {
-    padding: 6px 12px;
-    font-size: 14px;
-  }
+  color: #b388ff;
 }
 
 /* Animation for route transitions */
@@ -107,5 +92,3 @@
     transform: translateY(0);
   }
 }
-
-

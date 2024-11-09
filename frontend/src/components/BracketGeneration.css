@@ -2,13 +2,15 @@
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
+    font-family: 'Dimis', sans-serif;
   }
   
   .bracket-title {
     font-size: 24px;
     margin-bottom: 20px;
-    color: #333;
+    color: #ffffff;
     text-align: center;
+    font-family: 'Dimis', sans-serif;
   }
   
   .error-message {
@@ -98,6 +100,7 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
     padding: 15px;
+    color: #000;
   }
   
   .match-header {
@@ -227,6 +230,7 @@
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color:#000;
   }
   
   .finals-card {
@@ -254,7 +258,7 @@
   
   .finals-status {
     font-size: 18px;
-    color: #a0aec0;
+    color: #000000;
   }
   
   .finals-prize-pool {
@@ -508,7 +512,7 @@
   }
   
   .phase-stats {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(116, 0, 248, 0.2);
     padding: 1.25rem;
     border-radius: 8px;
   }
@@ -550,12 +554,12 @@
   
   .player-info .name {
     font-weight: 500;
-    color: #ffffff;
+    color: #000000;
   }
   
   .player-info .team {
     font-size: 0.875rem;
-    color: #a0aec0;
+    color: #000000;
   }
   
   .kills {
@@ -565,12 +569,12 @@
   .kills .count {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #68d391;
+    color: #0010f5;
     margin-right: 0.25rem;
   }
   
   .kills .label {
-    color: #a0aec0;
+    color: #000000;
     font-size: 0.875rem;
   }
   

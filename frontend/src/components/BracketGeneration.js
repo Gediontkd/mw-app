@@ -207,13 +207,13 @@ const BracketGeneration = () => {
   <h3>Finals - Best of 5</h3>
   {showGenerateFinals ? (
     <div className="generate-finals">
-      <p>Both semifinals are complete. Generate the finals match?</p>
+      {/* <p>Both semifinals are complete. Start the final match?</p>
       <button 
         className="generate-button"
         onClick={generateFinals}
       >
-        Generate Finals Match
-      </button>
+        Start Final Match
+      </button> */}
     </div>
   ) : finals ? (
     <div className="finals-bracket">
@@ -296,7 +296,7 @@ const BracketGeneration = () => {
       </div>
     </div>
   ) : (
-    <p className="info-text">Waiting for semifinals to complete before starting finals.</p>
+    <p className="info-text"></p>
   )}
 </div>
     </div>

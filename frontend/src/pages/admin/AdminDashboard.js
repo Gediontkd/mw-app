@@ -13,11 +13,58 @@ const AdminDashboard = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [qualifiedTeams, setQualifiedTeams] = useState({ A: [], B: [] });
+  const [showGenerateFinals, setShowGenerateFinals] = useState(false);
   
 
   useEffect(() => {
     fetchData();
   }, []);
+  
+  useEffect(() => {
+    console.log('Checking finals condition:', {
+      semifinalsLength: semifinals.length,
+      finals: finals,
+      completedSemis: semifinals.filter(match => match.wins_team1 === 2 || match.wins_team2 === 2).length
+    });
+    
+    if (semifinals.length > 0) {
+      const completedSemis = semifinals.filter(
+        match => match.wins_team1 === 2 || match.wins_team2 === 2
+      );
+      setShowGenerateFinals(completedSemis.length === 2 && !finals);
+    }
+  }, [semifinals, finals]);
+
+  const generateFinals = async () => {
+    try {
+      const completedSemis = semifinals.filter(
+        match => match.wins_team1 === 2 || match.wins_team2 === 2
+      );
+  
+      if (completedSemis.length !== 2) {
+        setError('Both semifinals must be completed first');
+        return;
+      }
+  
+      const team1 = completedSemis[0].wins_team1 === 2 
+        ? { id: completedSemis[0].team1_id, name: completedSemis[0].team1_name }
+        : { id: completedSemis[0].team2_id, name: completedSemis[0].team2_name };
+  
+      const team2 = completedSemis[1].wins_team1 === 2
+        ? { id: completedSemis[1].team1_id, name: completedSemis[1].team1_name }
+        : { id: completedSemis[1].team2_id, name: completedSemis[1].team2_name };
+  
+      await axios.post(`${config.API_BASE_URL}/matches/generate-finals`, {
+        team1_id: team1.id,
+        team2_id: team2.id
+      });
+  
+      await fetchData();
+      setMessage('Finals Started successfully');
+    } catch (error) {
+      setError('Failed to generate finals');
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -81,7 +128,7 @@ const generateBracket = async () => {
     });
 
     await fetchData();
-    setMessage('Semifinals bracket generated successfully');
+    setMessage('Semifinals Started successfully');
   } catch (error) {
     setError('Failed to generate bracket');
   }
@@ -130,9 +177,9 @@ const generateBracket = async () => {
       }
 
       await fetchData();
-      setMessage('Teams generated successfully');
+      setMessage('Teams created successfully');
     } catch (error) {
-      setError('Failed to generate teams');
+      setError('Failed to create teams');
     } finally {
       setLoading(false);
     }
@@ -247,6 +294,19 @@ const generateBracket = async () => {
     </button>
   </div>
 )}
+
+{showGenerateFinals && (
+    <div className="generate-section">
+      <p className="info-text">Both semifinals are complete. Start the final match?</p>
+      <button 
+        className="generate-button"
+        onClick={generateFinals}
+      >
+        Start Final Match
+      </button>
+    </div>
+)}
+
 </div>
 
       {/* Status Messages */}
@@ -255,7 +315,7 @@ const generateBracket = async () => {
 
       {/* Team Generation Controls */}
       <div className="team-generation">
-        <h2>Team Generation</h2>
+        <h2>Team Creation</h2>
         <div className="status-info">
           <p>Available Players: {players.filter(p => !p.team_id).length}/20</p>
           <p>Teams Created: {teams.length}/10</p>
@@ -266,7 +326,7 @@ const generateBracket = async () => {
             onClick={generateTeams}
             disabled={loading || players.filter(p => !p.team_id).length !== 20}
           >
-            {loading ? 'Generating...' : 'Generate Teams'}
+            {loading ? 'Creating...' : 'Create Teams'}
           </button>
           {teams.length > 0 && (
             <button

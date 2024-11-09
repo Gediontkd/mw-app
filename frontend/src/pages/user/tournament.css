@@ -60,6 +60,7 @@
     font-weight: bold;
     margin-bottom: 20px;
     color: #2c3e50;
+    font-family: 'DIMITRI', sans-serif;
   }
   
   /* Player Grid */
@@ -196,6 +197,7 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-family: 'DIMITRI', sans-serif;
   }
   
   .expand-button:hover {
@@ -274,9 +276,17 @@
     src: url('../../assets/fonts/DIMIS___.TTF') format('truetype');
     font-weight: normal;
     font-style: normal;
+  } */
+
+  @font-face {
+    font-family: 'DIMITRI';
+    src: url('../../assets/fonts/DIMITRI_.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap; /* This ensures text remains visible during font load */
   }
   
-  @font-face {
+  /* @font-face {
     font-family: 'Dimitri';
     src: url('../../assets/fonts/DIMITRI_.TTF') format('truetype');
     font-weight: normal;
@@ -325,4 +335,848 @@
     object-fit: cover;  /* This will ensure the image covers the space without distortion */
   }
 
+  .player-carousel {
+    margin: 20px 0;
+    width: 100%;
+    position: relative;
+  }
   
+  .carousel-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    padding: 20px 60px;
+    background: #252533;
+    border: 2px solid #9b4dff;
+  }
+  
+  .carousel-track {
+    display: flex;
+    transition: transform 0.5s ease;
+    width: 100%;
+  }
+  
+  .carousel-slide {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    min-width: 100%;
+    padding: 0 10px;
+  }
+  
+  /* Card Styles */
+  .carousel-card {
+    flex: 0 0 calc(25% - 15px); /* 4 cards per slide with gap */
+  aspect-ratio: 400/500;
+  padding: 0;
+  }
+  
+  .card-content {
+    position: relative;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #9b4dff;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #1a1a24;
+  }
+  
+  .card-image-container {
+    width: 100%;
+  height: 100%;
+  position: relative;
+  }
+  
+  .card-image {
+    width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  }
+  
+  /* Navigation Arrows */
+  .carousel-arrow {
+    position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(179, 136, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  z-index: 10;
+  }
+  
+  .carousel-arrow:hover {
+    background: rgba(179, 136, 255, 1);
+  }
+  
+  .carousel-arrow-left {
+    left: 5px;
+  }
+  
+  .carousel-arrow-right {
+    right: 5px;
+  }
+  
+  /* Navigation Dots */
+  .carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  
+  .carousel-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #342d44;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .carousel-card {
+    flex: 0 0 calc(33.333% - 13.333px);
+  }
+}
+
+@media (max-width: 768px) {
+  .carousel-card {
+    flex: 0 0 calc(50% - 10px);
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-card {
+    flex: 0 0 100%;
+  }
+}
+
+  .carousel-dot.active {
+    background: #9b4dff;
+    transform: scale(1.2);
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 1200px) {
+    .carousel-slide {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .carousel-slide {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .carousel-container {
+      padding: 20px 40px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .carousel-slide {
+      grid-template-columns: repeat(1, 1fr);
+    }
+    
+    .carousel-arrow {
+      width: 32px;
+      height: 32px;
+      font-size: 20px;
+    }
+  }
+  
+  .rankings-section {
+    margin-top: 2rem;
+    padding: 1rem;
+  }
+  
+  .rankings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .rankings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .ranking-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ranking-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    font-family: 'DIMITRI', sans-serif;
+  }
+  
+  .rankings-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .rankings-table th,
+  .rankings-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+  
+  .qualified-row {
+    background-color: rgba(76, 175, 80, 0.1);
+  }
+  
+  .qualification-mark {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    background: #e0e0e0;
+  }
+  
+  .qualification-mark.complete {
+    background: #4CAF50;
+    color: white;
+  }
+  
+  .last-update {
+    text-align: right;
+    font-size: 0.875rem;
+    color: #666;
+    margin-top: 1rem;
+  }
+  
+  .refresh-button {
+    padding: 0.5rem 1rem;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .refresh-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+
+  /* Banner Styles */
+.banner-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 2rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Adjust existing container padding */
+.tournament-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Adjust header spacing */
+.tournament-header {
+  margin-top: 1rem;
+}
+
+/* Carousel Styles */
+.player-carousel {
+  margin: 20px 0;
+  width: 100%;
+  position: relative;
+}
+
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  padding: 20px 60px;
+  width: 100%;
+  background: #f8f9fa;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease;
+  width: 100%;
+}
+
+.carousel-slide {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  min-width: 100%;
+}
+
+.carousel-card {
+  aspect-ratio: 3/4; /* Adjust aspect ratio to match your player cards */
+  padding: 10px;
+}
+
+.card-content {
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  background: white;
+}
+
+.card-content:hover {
+  transform: scale(1.02);
+}
+
+.card-image-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  padding: 5px;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Changed from cover to contain */
+  border-radius: 8px;
+}
+
+/* Navigation Arrows */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+.carousel-arrow:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-arrow-left {
+  left: 10px;
+}
+
+.carousel-arrow-right {
+  right: 10px;
+}
+
+/* Navigation Dots */
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.carousel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ccc;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-dot.active {
+  background: #4a90e2;
+  transform: scale(1.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .carousel-slide {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .carousel-slide {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-slide {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  
+  .carousel-container {
+    padding: 20px 40px;
+  }
+  
+  .carousel-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+  }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: modalFadeIn 0.3s ease;
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  font-family: 'DIMITRI', sans-serif;
+  font-size: 1.5rem;
+  margin: 0;
+  color: #333;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(80vh - 80px);
+}
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.modal-player-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  transition: transform 0.2s ease;
+}
+
+.modal-player-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-player-name {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #ffffff;
+}
+
+.modal-player-status {
+  font-size: 0.875rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.modal-player-status.assigned {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.modal-player-status.unassigned {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Add responsive styles */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .players-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+/* Main container background */
+.tournament-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #1a1a24; /* Dark background */
+  color: white;
+}
+
+/* Banner container */
+.banner-container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 2rem;
+  background-color: #b388ff; /* Purple background for banner */
+  border-radius: 8px;
+  border: 2px solid #9b4dff;
+  box-shadow: 0 0 10px rgba(179, 136, 255, 0.3);
+}
+
+/* Cards and sections */
+.section {
+  background-color: #252533;
+  border-radius: 12px;
+  padding: 20px;
+  border: 2px solid #9b4dff;
+  margin-bottom: 2rem;
+}
+
+/* Player carousel styling */
+.carousel-container {
+  background: #252533;
+  border: 2px solid #9b4dff;
+  padding: 20px 60px;
+}
+
+.carousel-card {
+  aspect-ratio: 3/4;
+  padding: 10px;
+}
+
+.card-content {
+  border: 2px solid #9b4dff;
+  background: #1a1a24;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-content:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 15px rgba(179, 136, 255, 0.4);
+}
+
+/* Rankings section */
+.rankings-section {
+  background-color: #252533;
+  border-radius: 12px;
+  padding: 20px;
+  border: 2px solid #9b4dff;
+}
+
+.ranking-card {
+  background: #1a1a24;
+  border: 2px solid #9b4dff;
+  border-radius: 8px;
+}
+
+.rankings-table th {
+  background-color: #342d44;
+  color: white;
+  padding: 12px;
+}
+
+.rankings-table td {
+  border-bottom: 1px solid #342d44;
+  color: white;
+}
+
+.qualified-row {
+  background-color: rgba(179, 136, 255, 0.1);
+}
+
+/* Tournament header */
+.tournament-header {
+  background: #252533;
+  border: 2px solid #9b4dff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 2rem;
+}
+
+.info-card {
+  background: #1a1a24;
+  border: 1px solid #9b4dff;
+}
+
+/* Navigation elements */
+.carousel-arrow {
+  background: rgba(179, 136, 255, 0.9);
+  color: white;
+}
+
+.carousel-arrow:hover {
+  background: rgba(179, 136, 255, 1);
+}
+
+.carousel-dot {
+  background: #342d44;
+}
+
+.carousel-dot.active {
+  background: #9b4dff;
+}
+
+/* Buttons */
+.expand-button {
+  background: #9b4dff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.expand-button:hover {
+  background: #8833ff;
+}
+
+/* Modal styles update */
+.modal-overlay {
+  background-color: rgba(26, 26, 36, 0.9);
+}
+
+.modal-content {
+  background: #252533;
+  border: 2px solid #9b4dff;
+}
+
+.modal-player-card {
+  background: #1a1a24;
+  border: 1px solid #9b4dff;
+}
+
+.modal-title {
+  color: white;
+}
+
+.modal-close {
+  color: white;
+}
+
+.modal-close:hover {
+  background: #342d44;
+}
+
+/* Text colors */
+.section-title,
+.tournament-title,
+.ranking-title {
+  color: white;
+}
+
+.info-label {
+  color: #b388ff;
+}
+
+.info-value {
+  color: white;
+}
+
+/* Progress bar */
+.progress-bar {
+  background: #342d44;
+}
+
+.progress-fill {
+  background-color: #9b4dff !important;
+}
+
+.qualified-row .progress-fill {
+  background-color: #4CAF50 !important;
+}
+
+/* Last update text */
+.last-update {
+  color: #b388ff;
+}
+
+/* Qualification mark */
+.qualification-mark {
+  background: #342d44;
+  color: white;
+}
+
+.qualification-mark.complete {
+  background: #4CAF50;
+}
+
+/* Only text color changes */
+.tournament-container,
+/* .tournament-title, */
+/* .section-title, */
+/* .info-label, */
+/* .info-value, */
+.player-name,
+.player-status,
+.modal-content,
+.modal-title,
+.ranking-title,
+.rankings-table th,
+.rankings-table td,
+.team-name,
+.team-players,
+.player-info,
+.last-update,
+.stats-value,
+.stats-label,
+.group-header,
+.modal-player-card .player-name,
+.qualification-mark,
+.rankings-table td:nth-child(2) {
+  color: #000;
+}
+
+/* Keep white text for elements on dark backgrounds */
+.nav-link,
+.carousel-arrow,
+.expand-button {
+  color: white;
+}
+
+.phase-navigation {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.phase-button {
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  border: 2px solid #b388ff;
+  font-family: 'DIMITRI', sans-serif;
+}
+
+.phase-button:hover {
+  background-color: #8833ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(155, 77, 255, 0.3);
+}
+
+.sponsor-banner {
+  font-family: 'Dimitri', sans-serif;
+  font-size: 2.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2rem;
+}

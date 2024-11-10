@@ -5,6 +5,9 @@ import axios from 'axios';
 import config from './config';
 import LogoImage from './assets/images/no_background_logo_titled2.png'
 import Footer from './components/Footer';
+import { AuthProvider, useAuth } from './auth/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import Login from './components/Login';
 
 // Import components
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -23,11 +26,9 @@ import './App.css';
 // Navigation Component
 const Navigation = ({ tournamentState }) => {
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
   const isAdmin = location.pathname.includes('/admin');
   const { currentPhase, qualifiedTeams } = tournamentState;
-
-  const showBracket = currentPhase === 'semifinals' || currentPhase === 'finals' || 
-    (qualifiedTeams.A >= 2 && qualifiedTeams.B >= 2);
 
   return (
     <nav className="main-nav">
@@ -37,54 +38,29 @@ const Navigation = ({ tournamentState }) => {
             <Link to="/admin" className="nav-brand">Admin Dashboard</Link>
           ) : (
             <Link to="/" className="nav-brand">
-              <img 
-                src={LogoImage}
-                alt="Tournament Dashboard"
-                className="nav-logo"
-              />
+              <img src={LogoImage} alt="Tournament Dashboard" className="nav-logo" />
             </Link>
           )}
         </div>
 
         <div className="nav-group">
           {!isAdmin && (
-            <>
-              <Link 
-                to="/" 
-                className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
-              >
-                Tournaments
-              </Link>
-              {/* <Link 
-                to="/rankings" 
-                className={`nav-link ${location.pathname === '/rankings' ? 'active' : ''}`}
-              >
-                Live Rankings
-              </Link> */}
-              {/* <Link 
-                to="/bracket" 
-                className={`nav-link ${location.pathname === '/bracket' ? 'active' : ''}`}
-              >
-                Phase 2
-              </Link> */}
-              {/* {showBracket && (
-                <Link 
-                  to="/bracket" 
-                  className={`nav-link ${location.pathname === '/bracket' ? 'active' : ''}`}
-                >
-                  {currentPhase === 'finals' ? 'Finals' : 'Semifinals'} 
-                  {currentPhase === 'qualifiers' && ` (${qualifiedTeams.A}/2 - ${qualifiedTeams.B}/2)`}
-                </Link>
-              )} */}
-            </>
+            <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
+              Tournaments
+            </Link>
           )}
         </div>
 
         <div className="nav-group">
-          {isAdmin ? (
-            <Link to="/" className="nav-link switch-view">Switch to User View</Link>
+          {isAuthenticated ? (
+            <>
+              <button onClick={logout} className="nav-link logout-btn">Logout</button>
+              <Link to="/" className="nav-link">User View</Link>
+            </>
           ) : (
-            <Link to="/admin" className="nav-link switch-view">Admin</Link>
+            !location.pathname.includes('/admin/login') && (
+              <Link to="/admin/login" className="nav-link">Admin</Link>
+            )
           )}
         </div>
       </div>
@@ -92,20 +68,6 @@ const Navigation = ({ tournamentState }) => {
   );
 };
 
-// Admin Routes Component
-const AdminRoutes = () => (
-  <Routes>
-    <Route path="/" element={<AdminDashboard />} />
-    <Route path="/teams" element={<TeamManagement />} />
-    <Route path="/players" element={<PlayerManagement />} />
-    <Route path="/matches" element={<MatchManagement />} />
-    <Route path="/generate-teams" element={<TeamGenerator />} />
-    <Route path="/tournament-phases" element={<TournamentPhases />} />
-    
-  </Routes>
-);
-
-// Main App Component
 function App() {
   const [tournamentState, setTournamentState] = useState({
     currentPhase: null,
@@ -150,37 +112,71 @@ function App() {
 
   return (
     <Router>
-      <div className="app">
-        <Navigation tournamentState={tournamentState} />
-        
-        <div className="main-content">
-          <Routes>
-            {/* User Routes */}
-            <Route path="/" element={<TournamentDashboard />} />
-            <Route path="/rankings" element={<LiveRankings />} />
-            <Route 
-              path="/bracket" 
-              element={
+      <AuthProvider>
+        <div className="app">
+          <Navigation tournamentState={tournamentState} />
+          
+          <div className="main-content">
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<TournamentDashboard />} />
+              <Route path="/rankings" element={<LiveRankings />} />
+              <Route path="/bracket" element={
                 <BracketGeneration 
                   currentPhase={tournamentState.currentPhase}
                   onPhaseChange={fetchTournamentState}
                 />
-              } 
-            />
-            
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/teams" element={<TeamManagement />} />
-            <Route path="/admin/players" element={<PlayerManagement />} />
-            <Route path="/admin/matches" element={<MatchManagement />} />
-            <Route path="/admin/generate-teams" element={<TeamGenerator />} />
-            <Route path="/admin/tournament-phases" element={<TournamentPhases />} />
-            <Route path="/admin/semifinals" element={<AdminSemifinals />} />
-            <Route path="/admin/finals" element={<AdminFinals />} />
-          </Routes>
-          <Footer />
+              } />
+              
+              {/* Admin Login Route */}
+              <Route path="/admin/login" element={<Login />} />
+
+              {/* Protected Admin Routes */}
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/teams" element={
+                <ProtectedRoute>
+                  <TeamManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/players" element={
+                <ProtectedRoute>
+                  <PlayerManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/matches" element={
+                <ProtectedRoute>
+                  <MatchManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/generate-teams" element={
+                <ProtectedRoute>
+                  <TeamGenerator />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/tournament-phases" element={
+                <ProtectedRoute>
+                  <TournamentPhases />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/semifinals" element={
+                <ProtectedRoute>
+                  <AdminSemifinals />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/finals" element={
+                <ProtectedRoute>
+                  <AdminFinals />
+                </ProtectedRoute>
+              } />
+            </Routes>
+            <Footer />
+          </div>
         </div>
-      </div>
+      </AuthProvider>
     </Router>
   );
 }

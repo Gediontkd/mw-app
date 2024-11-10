@@ -52,16 +52,16 @@ const Navigation = ({ tournamentState }) => {
         </div>
 
         <div className="nav-group">
-          {isAuthenticated ? (
+          {isAuthenticated && isAdmin ? (
+            // Only show these buttons on admin pages when authenticated
             <>
               <button onClick={logout} className="nav-link logout-btn">Logout</button>
-              <Link to="/" className="nav-link">User View</Link>
+              <Link to="/" className="nav-link user-view-btn">User View</Link>
             </>
-          ) : (
-            !location.pathname.includes('/admin/login') && (
-              <Link to="/admin/login" className="nav-link">Admin</Link>
-            )
-          )}
+          ) : !isAdmin ? (
+            // Show Admin link on user pages
+            <Link to="/admin" className="nav-link">Admin</Link>
+          ) : null}
         </div>
       </div>
     </nav>

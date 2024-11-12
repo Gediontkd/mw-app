@@ -2,10 +2,7 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-const https = require('https');
-const fs = require('fs');
 require('dotenv').config()
-
 const playersRouter = require('./routes/players');
 const teamsRouter = require('./routes/teams');
 const matchesRouter = require('./routes/matches');
@@ -14,21 +11,10 @@ const tournamentRouter = require('./routes/tournament');
 
 const app = express();
 const port = process.env.PORT || 5000;
-const httpsPort = process.env.HTTPS_PORT || 5443;
-
-// SSL certificate configuration
-const sslOptions = {
-  key: fs.readFileSync('/home/ubuntu/ssl/private.key'),
-  cert: fs.readFileSync('/home/ubuntu/ssl/certificate.crt')
-};
 
 // Middleware to parse JSON bodies and enable CORS
 app.use(express.json());
-app.use(cors({
-  origin: ['https://www.egxtesting.it', 'http://www.egxtesting.it'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true
-}));
+app.use(cors());
 
 // Use routes for different entities
 app.use('/players', playersRouter);
@@ -37,14 +23,8 @@ app.use('/matches', matchesRouter);
 app.use('/phases', tournamentPhasesRouter);
 app.use('/tournament', tournamentRouter);
 
-// Create HTTPS server
-const httpsServer = https.createServer(sslOptions, app);
-
-// Start both HTTP and HTTPS servers
+// Start the server
 app.listen(port, () => {
-    console.log(`HTTP Server is running on port ${port}`);
-});
-
-httpsServer.listen(httpsPort, () => {
-    console.log(`HTTPS Server is running on port ${httpsPort}`);
+    console.log(`Server is running on port ${port}`);
+  
 });

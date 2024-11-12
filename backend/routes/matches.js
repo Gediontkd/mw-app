@@ -426,15 +426,15 @@ router.post('/finals-result', async (req, res) => {
 
         // Check if match is complete (best of 5)
         const [games] = await connection.query(`
-            SELECT winner_team_id,
-                   COUNT(CASE WHEN winner_team_id = ? THEN 1 END) as team1_wins,
-                   COUNT(CASE WHEN winner_team_id = ? THEN 1 END) as team2_wins
+            SELECT 
+                COUNT(CASE WHEN winner_team_id = ? THEN 1 END) as team1_wins,
+                COUNT(CASE WHEN winner_team_id = ? THEN 1 END) as team2_wins
             FROM finals_games
             WHERE finals_id = ?
             GROUP BY finals_id
         `, [finals[0].team1_id, finals[0].team2_id, finals_id]);
 
-        if (games[0].team1_wins === 3 || games[0].team2_wins === 3) {
+        if (games.length > 0 && (games[0].team1_wins === 3 || games[0].team2_wins === 3)) {
             await connection.query(
                 'UPDATE finals SET status = "completed" WHERE id = ?',
                 [finals_id]
@@ -442,7 +442,11 @@ router.post('/finals-result', async (req, res) => {
         }
 
         await connection.commit();
-        res.json({ message: 'Finals game result recorded successfully' });
+        res.json({ 
+            message: 'Finals game result recorded successfully',
+            gameNumber: game_number,
+            winnerTeamId: winner_team_id
+        });
     } catch (error) {
         await connection.rollback();
         console.error('Error recording finals result:', error);

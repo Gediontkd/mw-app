@@ -37,39 +37,36 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Add qualifier match result
+// Backend route (matches.js)
 router.post('/qualifier-result', async (req, res) => {
-    const { team1_id, team2_id, team1_kills, team2_kills, game_time, player_kills } = req.body;
+    const { team_id, kills, game_time, player_kills } = req.body;
     
     const connection = await pool.getConnection();
     try {
         await connection.beginTransaction();
 
-        // Update first team's stats
+        // Get current team stats
+        const [currentTeam] = await connection.query(
+            'SELECT total_kills FROM teams WHERE id = ?',
+            [team_id]
+        );
+
+        const newTotalKills = (currentTeam[0]?.total_kills || 0) + kills;
+
+        // Update team stats
         await connection.query(`
             UPDATE teams 
-            SET total_kills = COALESCE(total_kills, 0) + ?, 
+            SET total_kills = ?,
                 matches_played = COALESCE(matches_played, 0) + 1,
                 game_time = CASE 
                     WHEN game_time IS NULL THEN ?
                     ELSE CONCAT(game_time, ', ', ?)
-                END
+                END,
+                is_qualified = IF(? >= 100, TRUE, FALSE)
             WHERE id = ?
-        `, [team1_kills, game_time, game_time, team1_id]);
+        `, [newTotalKills, game_time, game_time, newTotalKills, team_id]);
 
-        // Update second team's stats
-        await connection.query(`
-            UPDATE teams 
-            SET total_kills = COALESCE(total_kills, 0) + ?, 
-                matches_played = COALESCE(matches_played, 0) + 1,
-                game_time = CASE 
-                    WHEN game_time IS NULL THEN ?
-                    ELSE CONCAT(game_time, ', ', ?)
-                END
-            WHERE id = ?
-        `, [team2_kills, game_time, game_time, team2_id]);
-
-        // Update player kills and matches played
+        // Update player kills
         for (const playerKill of player_kills) {
             await connection.query(`
                 UPDATE players 
@@ -80,40 +77,32 @@ router.post('/qualifier-result', async (req, res) => {
             `, [playerKill.kills, playerKill.kills, playerKill.player_id]);
         }
 
-        // Add match record
+        // Add match record (using team_id for both team1_id and team2_id)
         const [matchResult] = await connection.query(`
             INSERT INTO matches 
             (team1_id, team2_id, team1_kills, team2_kills, game_time, match_type)
-            VALUES (?, ?, ?, ?, ?, 'qualifier')
-        `, [team1_id, team2_id, team1_kills, team2_kills, game_time]);
-
-        // Check and update qualification status
-        const [teams] = await connection.query(
-            'SELECT id, total_kills FROM teams WHERE id IN (?, ?)',
-            [team1_id, team2_id]
-        );
-
-        // Update qualification status for teams that reach 100+ kills
-        for (const team of teams) {
-            if (team.total_kills >= 100) {
-                await connection.query(
-                    'UPDATE teams SET is_qualified = TRUE WHERE id = ?',
-                    [team.id]
-                );
-            }
-        }
+            VALUES (?, ?, ?, 0, ?, 'qualifier')
+        `, [team_id, team_id, kills, game_time]);
 
         await connection.commit();
+
+        // Get updated team data
+        const [updatedTeam] = await connection.query(`
+            SELECT id, team_name, total_kills, matches_played, is_qualified
+            FROM teams WHERE id = ?
+        `, [team_id]);
+
         res.json({ 
-            message: 'Match results recorded successfully',
-            matchId: matchResult.insertId
+            message: 'Game recorded successfully',
+            matchId: matchResult.insertId,
+            team: updatedTeam[0]
         });
 
     } catch (error) {
         await connection.rollback();
-        console.error('Error recording match result:', error);
+        console.error('Error recording game result:', error);
         res.status(500).json({ 
-            error: 'Failed to record match result',
+            error: 'Failed to record game result',
             details: error.message 
         });
     } finally {
@@ -121,23 +110,18 @@ router.post('/qualifier-result', async (req, res) => {
     }
 });
 
-// Get team rankings
+// Get team rankings by group
 router.get('/team-rankings/:group', async (req, res) => {
     const { group } = req.params;
     try {
         const teams = await executeQuery(`
             SELECT t.*, 
-                   COUNT(m.id) as matches_played,
-                   SUM(CASE 
-                       WHEN m.team1_id = t.id THEN m.team1_kills
-                       WHEN m.team2_id = t.id THEN m.team2_kills
-                       ELSE 0 
-                   END) as total_kills
+                   t.matches_played,
+                   t.total_kills,
+                   t.is_qualified
             FROM teams t
-            LEFT JOIN matches m ON t.id = m.team1_id OR t.id = m.team2_id
             WHERE t.group_name = ?
-            GROUP BY t.id
-            ORDER BY total_kills DESC, matches_played ASC
+            ORDER BY t.total_kills DESC, t.matches_played ASC
         `, [group]);
         res.json(teams);
     } catch (error) {

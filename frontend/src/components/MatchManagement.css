@@ -1,9 +1,25 @@
 /* MatchManagement.css */
 .match-container {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.match-container h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #000;  /* Changed to black */
+  font-size: 28px;  /* Increased font size */
+  font-weight: 700;  /* Made font bolder */
+  text-transform: uppercase;  /* Made it uppercase for emphasis */
+  padding: 15px 0;  /* Added padding */
+  border-bottom: 3px solid #007bff;  /* Added bottom border */
+  margin-top: 10px;
+  letter-spacing: 0.5px;  /* Added letter spacing */
+  background-color: #fff;  /* Added white background */
+  border-radius: 8px;  /* Added border radius */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  /* Added subtle shadow */
+}
   
   .match-form {
     background-color: #f8f9fa;

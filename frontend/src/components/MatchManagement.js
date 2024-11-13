@@ -114,7 +114,7 @@ const MatchManagement = () => {
 
   return (
     <div className="match-container">
-      <h2>Group Stage Games Management</h2>
+      <h2>Qualifier Match Management</h2>
       
       <div className="group-tabs">
         <button 

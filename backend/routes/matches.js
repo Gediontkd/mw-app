@@ -38,8 +38,10 @@ router.get('/', async (req, res) => {
 });
 
 // Backend route (matches.js)
+// In matches.js, update the qualifier-result endpoint:
+
 router.post('/qualifier-result', async (req, res) => {
-    const { team_id, kills, game_time, player_kills } = req.body;
+    const { team_id, kills, game_time, time_played, player_kills } = req.body;
     
     const connection = await pool.getConnection();
     try {
@@ -62,9 +64,13 @@ router.post('/qualifier-result', async (req, res) => {
                     WHEN game_time IS NULL THEN ?
                     ELSE CONCAT(game_time, ', ', ?)
                 END,
+                time_played = CASE 
+                    WHEN time_played IS NULL THEN ?
+                    ELSE CONCAT(time_played, ', ', ?)
+                END,
                 is_qualified = IF(? >= 100, TRUE, FALSE)
             WHERE id = ?
-        `, [newTotalKills, game_time, game_time, newTotalKills, team_id]);
+        `, [newTotalKills, game_time, game_time, time_played, time_played, newTotalKills, team_id]);
 
         // Update player kills
         for (const playerKill of player_kills) {
@@ -77,18 +83,18 @@ router.post('/qualifier-result', async (req, res) => {
             `, [playerKill.kills, playerKill.kills, playerKill.player_id]);
         }
 
-        // Add match record (using team_id for both team1_id and team2_id)
+        // Add match record
         const [matchResult] = await connection.query(`
             INSERT INTO matches 
-            (team1_id, team2_id, team1_kills, team2_kills, game_time, match_type)
-            VALUES (?, ?, ?, 0, ?, 'qualifier')
-        `, [team_id, team_id, kills, game_time]);
+            (team1_id, team2_id, team1_kills, team2_kills, game_time, time_played, match_type)
+            VALUES (?, ?, ?, 0, ?, ?, 'qualifier')
+        `, [team_id, team_id, kills, game_time, time_played]);
 
         await connection.commit();
 
         // Get updated team data
         const [updatedTeam] = await connection.query(`
-            SELECT id, team_name, total_kills, matches_played, is_qualified
+            SELECT id, team_name, total_kills, matches_played, is_qualified, time_played
             FROM teams WHERE id = ?
         `, [team_id]);
 
@@ -110,7 +116,51 @@ router.post('/qualifier-result', async (req, res) => {
     }
 });
 
-// Get team rankings by group
+// Update the team rankings endpoint to include time_played
+const calculateTotalTime = (timeString) => {
+    if (!timeString) return { minutes: 0, seconds: 0 };
+    
+    try {
+        // Split the times and filter out any empty or invalid values
+        const times = timeString.split(', ').filter(time => {
+            return time && time.includes(':') && time.match(/^\d{2}:\d{2}$/);
+        });
+
+        if (times.length === 0) return { minutes: 0, seconds: 0 };
+
+        return times.reduce((total, time) => {
+            const [minutes, seconds] = time.split(':').map(num => parseInt(num, 10) || 0);
+            return {
+                minutes: total.minutes + minutes,
+                seconds: total.seconds + seconds
+            };
+        }, { minutes: 0, seconds: 0 });
+    } catch (error) {
+        console.error('Error calculating total time:', error);
+        return { minutes: 0, seconds: 0 };
+    }
+};
+
+const formatTime = (totalTime) => {
+    try {
+        let { minutes, seconds } = totalTime;
+        
+        // Convert excess seconds to minutes
+        minutes += Math.floor(seconds / 60);
+        seconds = seconds % 60;
+        
+        // Ensure we have valid numbers
+        minutes = Math.max(0, parseInt(minutes) || 0);
+        seconds = Math.max(0, parseInt(seconds) || 0);
+        
+        // Format with leading zeros
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    } catch (error) {
+        console.error('Error formatting time:', error);
+        return '00:00';
+    }
+};
+
 router.get('/team-rankings/:group', async (req, res) => {
     const { group } = req.params;
     try {
@@ -118,12 +168,23 @@ router.get('/team-rankings/:group', async (req, res) => {
             SELECT t.*, 
                    t.matches_played,
                    t.total_kills,
-                   t.is_qualified
+                   t.is_qualified,
+                   t.time_played
             FROM teams t
             WHERE t.group_name = ?
             ORDER BY t.total_kills DESC, t.matches_played ASC
         `, [group]);
-        res.json(teams);
+
+        // Process each team's total time
+        const processedTeams = teams.map(team => {
+            const totalTime = calculateTotalTime(team.time_played);
+            return {
+                ...team,
+                total_time: formatTime(totalTime)
+            };
+        });
+
+        res.json(processedTeams);
     } catch (error) {
         console.error('Error fetching team rankings:', error);
         res.status(500).json({ 

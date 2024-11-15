@@ -13,20 +13,20 @@ const tournamentRouter = require('./routes/tournament');
 
 const app = express();
 const port = process.env.PORT || 5000;
-const httpsPort = process.env.HTTPS_PORT || 443;
+// const httpsPort = process.env.HTTPS_PORT || 443;
 
 // SSL certificate configuration
-const sslOptions = {
-    key: fs.readFileSync('/etc/letsencrypt/live/egxtestingbackend.it/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/egxtestingbackend.it/fullchain.pem')
-  };
+// const sslOptions = {
+//     key: fs.readFileSync('/etc/letsencrypt/live/egxtestingbackend.it/privkey.pem'),
+//     cert: fs.readFileSync('/etc/letsencrypt/live/egxtestingbackend.it/fullchain.pem')
+//   };
 
 // Middleware to parse JSON bodies and enable CORS
 app.use(express.json());
 app.use(cors({
-    origin: ['https://www.egxtesting.it'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true
+    // origin: ['https://www.egxtesting.it'],
+    // methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    // credentials: true
   }));
 
 // Use routes for different entities
@@ -37,7 +37,7 @@ app.use('/phases', tournamentPhasesRouter);
 app.use('/tournament', tournamentRouter);
 
 // Create HTTPS server
-const httpsServer = https.createServer(sslOptions, app);
+// const httpsServer = https.createServer(sslOptions, app);
 
 // Start the server
 app.listen(port, () => {
@@ -45,6 +45,6 @@ app.listen(port, () => {
   
 });
 
-httpsServer.listen(httpsPort, () => {
-    console.log(`HTTPS Server is running on port ${httpsPort}`);
-});
+// httpsServer.listen(httpsPort, () => {
+//     console.log(`HTTPS Server is running on port ${httpsPort}`);
+// });

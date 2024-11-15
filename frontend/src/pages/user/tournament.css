@@ -334,168 +334,6 @@
     height: 100%;
     object-fit: cover;  /* This will ensure the image covers the space without distortion */
   }
-
-  .player-carousel {
-    margin: 20px 0;
-    width: 100%;
-    position: relative;
-  }
-  
-  .carousel-container {
-    position: relative;
-    overflow: hidden;
-    border-radius: 12px;
-    padding: 20px 60px;
-    background: #252533;
-    border: 2px solid #9b4dff;
-  }
-  
-  .carousel-track {
-    display: flex;
-    transition: transform 0.5s ease;
-    width: 100%;
-  }
-  
-  .carousel-slide {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    min-width: 100%;
-    padding: 0 10px;
-  }
-  
-  /* Card Styles */
-  .carousel-card {
-    flex: 0 0 calc(25% - 15px); /* 4 cards per slide with gap */
-  aspect-ratio: 400/500;
-  padding: 0;
-  }
-  
-  .card-content {
-    position: relative;
-  width: 100%;
-  height: 100%;
-  border: 2px solid #9b4dff;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #1a1a24;
-  }
-  
-  .card-image-container {
-    width: 100%;
-  height: 100%;
-  position: relative;
-  }
-  
-  .card-image {
-    width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  }
-  
-  /* Navigation Arrows */
-  .carousel-arrow {
-    position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(179, 136, 255, 0.9);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: white;
-  z-index: 10;
-  }
-  
-  .carousel-arrow:hover {
-    background: rgba(179, 136, 255, 1);
-  }
-  
-  .carousel-arrow-left {
-    left: 5px;
-  }
-  
-  .carousel-arrow-right {
-    right: 5px;
-  }
-  
-  /* Navigation Dots */
-  .carousel-dots {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 20px;
-  }
-  
-  .carousel-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #342d44;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-  .carousel-card {
-    flex: 0 0 calc(33.333% - 13.333px);
-  }
-}
-
-@media (max-width: 768px) {
-  .carousel-card {
-    flex: 0 0 calc(50% - 10px);
-  }
-}
-
-@media (max-width: 480px) {
-  .carousel-card {
-    flex: 0 0 100%;
-  }
-}
-
-  .carousel-dot.active {
-    background: #9b4dff;
-    transform: scale(1.2);
-  }
-  
-  /* Responsive Adjustments */
-  @media (max-width: 1200px) {
-    .carousel-slide {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .carousel-slide {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .carousel-container {
-      padding: 20px 40px;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .carousel-slide {
-      grid-template-columns: repeat(1, 1fr);
-    }
-    
-    .carousel-arrow {
-      width: 32px;
-      height: 32px;
-      font-size: 20px;
-    }
-  }
   
   .rankings-section {
     margin-top: 2rem;
@@ -623,22 +461,6 @@
 /* Adjust header spacing */
 .tournament-header {
   margin-top: 1rem;
-}
-
-/* Carousel Styles */
-.player-carousel {
-  margin: 20px 0;
-  width: 100%;
-  position: relative;
-}
-
-.carousel-container {
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-  padding: 20px 60px;
-  width: 100%;
-  background: #f8f9fa;
 }
 
 .carousel-track {
@@ -1425,5 +1247,128 @@
   .phase-button {
     padding: 1rem 2rem;
     font-size: 1.2rem;
+  }
+}
+
+/* Updated carousel styles to fix first area spacing and last image visibility */
+
+.player-carousel {
+  margin: 20px 0;
+  width: 100%;
+  position: relative;
+}
+
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  padding: 20px 25px; /* Reduced padding significantly */
+  background: #252533;
+  border: 2px solid #9b4dff;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease;
+  width: 100%;
+}
+
+.carousel-slide {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px; /* Reduced gap further */
+  min-width: 100%;
+  padding: 0 5px; /* Minimal padding */
+}
+
+/* Card styles */
+.carousel-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  min-width: 0;
+}
+
+.card-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #9b4dff;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #1a1a24;
+}
+
+.card-image-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Navigation arrows - moved even closer to edges */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(179, 136, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+  z-index: 10;
+}
+
+.carousel-arrow-left {
+  left: -5px; /* Moved into the padding space */
+}
+
+.carousel-arrow-right {
+  right: -5px; /* Moved into the padding space */
+}
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+  .carousel-slide {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .carousel-container {
+    padding: 20px 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .carousel-slide {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .carousel-container {
+    padding: 20px 25px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-slide {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  
+  .carousel-container {
+    padding: 15px 20px;
   }
 }

@@ -324,3 +324,34 @@
     border-radius: 4px;
     margin-bottom: 20px;
   }
+
+  .time-input-container {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .time-input-container label {
+    display: block;
+    margin-bottom: 8px;
+    color: #000;
+    font-weight: 500;
+    font-size: 15px;
+  }
+  
+  .time-input-container input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    text-align: center;
+    font-family: monospace;
+  }
+  
+  .time-input-container input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+  }

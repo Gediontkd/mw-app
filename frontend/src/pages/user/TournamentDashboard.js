@@ -6,6 +6,7 @@ import config from '../../config';
 import { fetchTeamRankings } from '../../services/matchService';
 import { fetchTournamentPhase, checkQualification } from '../../services/tournamentService';
 import { Link } from 'react-router-dom';
+import TournamentPhases from '../../components/TournamentPhases';
 
 // Import player images
 import player1 from '../../assets/players/bblade_card.png';
@@ -246,6 +247,12 @@ const TournamentDashboard = () => {
     }
   };
 
+  const areTeamsQualified = () => {
+    const qualifiedTeamsA = rankings.groupA.filter(team => team.isQualified).length;
+    const qualifiedTeamsB = rankings.groupB.filter(team => team.isQualified).length;
+    return qualifiedTeamsA >= 2 && qualifiedTeamsB >= 2;
+  };
+
   const processTeamRankings = (teams) => {
     return teams
       .map(team => ({
@@ -291,7 +298,7 @@ const TournamentDashboard = () => {
 
   const TeamRankingsTable = ({ rankings, groupName }) => {
     const qualifiedTeams = rankings.filter(team => team.isQualified).length;
-
+  
     return (
       <div className="ranking-card">
         <div className="ranking-title">
@@ -307,6 +314,7 @@ const TournamentDashboard = () => {
               <th>Team</th>
               <th>Kills</th>
               <th>Matches</th>
+              <th>Total Time</th>
               <th>Progress</th>
             </tr>
           </thead>
@@ -320,6 +328,7 @@ const TournamentDashboard = () => {
                 <td>{team.team_name}</td>
                 <td>{team.total_kills}</td>
                 <td>{team.matches_played}</td>
+                <td className="time-column">{team.total_time || '00:00'}</td>
                 <td>
                   <div className="progress-bar">
                     <div 
@@ -412,31 +421,20 @@ const TournamentDashboard = () => {
 
       {/* Rankings Section */}
       <div className="rankings-section">
-        <div className="rankings-header">
-          <h2 className="section-title">Phase 1</h2>
-          <h2 className="section-title"><Link to="/bracket" className="phase-button">
-      Phase 2
-    </Link></h2>
-          {/* <button 
-            onClick={fetchData} 
-            className="refresh-button"
-            disabled={loading}
-          >
-            Refresh Rankings
-          </button> */}
-        </div>
-        
-        <div className="rankings-grid">
-          <TeamRankingsTable rankings={rankings.groupA} groupName="A" />
-          <TeamRankingsTable rankings={rankings.groupB} groupName="B" />
-        </div>
-
-        {lastUpdate && (
-          <div className="last-update">
-            Last updated: {lastUpdate.toLocaleTimeString()}
-          </div>
-        )}
+  {areTeamsQualified() ? (
+    <TournamentPhases currentPhase={currentPhase} />
+  ) : (
+    <>
+      <div className="rankings-header">
+        <h2 className="section-title">Phase 1</h2>
       </div>
+      <div className="rankings-grid">
+        <TeamRankingsTable rankings={rankings.groupA} groupName="A" />
+        <TeamRankingsTable rankings={rankings.groupB} groupName="B" />
+      </div>
+    </>
+  )}
+</div>
     <br/><br/><br/><br/>
       {/* Banner Image */}
       <div className="banner-container">

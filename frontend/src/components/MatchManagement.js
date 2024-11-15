@@ -13,7 +13,8 @@ const MatchManagement = () => {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [newGame, setNewGame] = useState({
     players: {},
-    game_time: new Date().toLocaleTimeString()
+    game_time: new Date().toLocaleTimeString(),
+    time_played: '' // Add this new field
   });
 
   useEffect(() => {
@@ -32,6 +33,13 @@ const MatchManagement = () => {
       setError('Failed to fetch data');
     }
   };
+
+  // Add this time validation function
+const validateTime = (timeString) => {
+  // Check if the time format is correct (MM:SS)
+  const timeRegex = /^([0-5][0-9]):([0-5][0-9])$/;
+  return timeRegex.test(timeString);
+};
 
   const getTeamPlayers = (teamId) => {
     return players.filter(player => player.team_id === parseInt(teamId));
@@ -58,32 +66,34 @@ const MatchManagement = () => {
     setError('');
     setSuccess('');
     setLoading(true);
-
+  
     const validationError = validateGame();
     if (validationError) {
       setError(validationError);
       setLoading(false);
       return;
     }
-
+  
     try {
       const totalKills = calculateTeamKills();
       const player_kills = Object.entries(newGame.players).map(([playerId, kills]) => ({
         player_id: parseInt(playerId),
         kills: parseInt(kills)
       }));
-
+  
       await axios.post(`${config.API_BASE_URL}/matches/qualifier-result`, {
         team_id: selectedTeam,
         kills: totalKills,
         game_time: newGame.game_time,
+        time_played: newGame.time_played,
         player_kills
       });
-
+  
       setSuccess('Game added successfully');
       setNewGame({
         players: {},
-        game_time: new Date().toLocaleTimeString()
+        game_time: new Date().toLocaleTimeString(),
+        time_played: ''
       });
       setSelectedTeam(null);
       fetchData();
@@ -94,23 +104,28 @@ const MatchManagement = () => {
     }
   };
 
-  const validateGame = () => {
-    if (!selectedTeam) return 'Please select a team';
+  // Update the validateGame function
+const validateGame = () => {
+  if (!selectedTeam) return 'Please select a team';
 
-    const teamPlayers = getTeamPlayers(selectedTeam);
-    if (teamPlayers.length === 0) return 'No players found for this team';
+  const teamPlayers = getTeamPlayers(selectedTeam);
+  if (teamPlayers.length === 0) return 'No players found for this team';
 
-    const missingKills = teamPlayers.some(player => 
-      !newGame.players[player.id] && newGame.players[player.id] !== 0
-    );
-    
-    if (missingKills) return 'Please enter kills for all players';
+  const missingKills = teamPlayers.some(player => 
+    !newGame.players[player.id] && newGame.players[player.id] !== 0
+  );
+  
+  if (missingKills) return 'Please enter kills for all players';
 
-    const team = teams.find(t => t.id === selectedTeam);
-    if (team?.is_qualified) return 'This team has already qualified';
-    
-    return null;
-  };
+  if (!validateTime(newGame.time_played)) {
+    return 'Please enter a valid time in MM:SS format';
+  }
+
+  const team = teams.find(t => t.id === selectedTeam);
+  if (team?.is_qualified) return 'This team has already qualified';
+  
+  return null;
+};
 
   return (
     <div className="match-container">
@@ -157,7 +172,7 @@ const MatchManagement = () => {
               <h3>{team.team_name}</h3>
               <div className="team-stats">
                 <span>Total Kills: {team.total_kills || 0}</span>
-                <span>Matches: {team.matches_played || 0}</span>
+                <span>PlayedMatches: {team.matches_played || 0}</span>
                 {team.is_qualified && (
                   <span className="qualified-badge">Qualified!</span>
                 )}
@@ -169,7 +184,34 @@ const MatchManagement = () => {
       {selectedTeam && (
         <form onSubmit={handleSubmit} className="game-form">
           <h3>Add New Game for {teams.find(t => t.id === selectedTeam)?.team_name}</h3>
-          
+          <div className="time-input-container">
+  <label htmlFor="timePlayed">Time Played (MM:SS):</label>
+  <input
+    type="text"
+    id="timePlayed"
+    placeholder="00:00"
+    pattern="[0-5][0-9]:[0-5][0-9]"
+    value={newGame.time_played}
+    onChange={(e) => {
+      const value = e.target.value;
+      // Allow empty string or partially typed time
+      if (value === '' || value.length <= 5) {
+        setNewGame(prev => ({
+          ...prev,
+          time_played: value
+        }));
+      }
+    }}
+    onBlur={(e) => {
+      // Validate on blur
+      if (e.target.value && !validateTime(e.target.value)) {
+        setError('Please enter a valid time in MM:SS format');
+      }
+    }}
+    required
+  />
+</div>
+
           <div className="players-grid">
             {getTeamPlayers(selectedTeam).map(player => (
               <div key={player.id} className="player-input">

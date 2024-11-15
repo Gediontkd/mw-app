@@ -44,11 +44,11 @@ const Navigation = ({ tournamentState }) => {
         </div>
 
         <div className="nav-group">
-          {!isAdmin && (
+          {/* {!isAdmin && (
             <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}>
               Tournaments
             </Link>
-          )}
+          )} */}
         </div>
 
         <div className="nav-group">
@@ -58,9 +58,6 @@ const Navigation = ({ tournamentState }) => {
               <button onClick={logout} className="nav-link logout-btn">Logout</button>
               <Link to="/" className="nav-link user-view-btn">User View</Link>
             </>
-          ) : !isAdmin ? (
-            // Show Admin link on user pages
-            <Link to="/admin" className="nav-link">Admin</Link>
           ) : null}
         </div>
       </div>

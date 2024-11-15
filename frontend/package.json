@@ -1,6 +1,7 @@
 {
   "name": "tournament-app-frontend",
   "version": "1.0.0",
+  "homepage": "/",
   "private": true,
   "dependencies": {
     "@headlessui/react": "^2.2.0",

@@ -108,7 +108,6 @@ function App() {
   }
 
   return (
-    <Router>
       <AuthProvider>
         <div className="app">
           <Navigation tournamentState={tournamentState} />
@@ -174,7 +173,6 @@ function App() {
           </div>
         </div>
       </AuthProvider>
-    </Router>
   );
 }
 
